@@ -1,14 +1,7 @@
-apply plugin: 'java'
-
-group project_group
-version project_version
-
-sourceCompatibility = project_jdk
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
+    compile(
+            libs."commons-codec",
+            libs."joda-time"
+    )
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

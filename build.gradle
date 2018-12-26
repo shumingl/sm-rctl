@@ -1,3 +1,99 @@
+group = project_group
+version = project_version
 
-group project_group
-version project_version
+ext {
+    types = [
+            "sm-base"  : "lib",
+            "sm-remote": "lib",
+            "sm-local" : "lib",
+            "sm-server": "lib"
+    ]
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+        maven { url = 'http://maven.aliyun.com/nexus/content/groups/public/' }
+        mavenCentral()
+    }
+}
+
+// 根据子项目类型拆分
+def listExe = []
+def listLib = []
+types.each { entry ->
+    if (entry.value == 'exe')
+        listExe.add(project(":${entry.key}"))
+    else
+        listLib.add(project(":${entry.key}"))
+}
+
+/*子项目配置*/
+subprojects { prj ->
+
+    apply plugin: 'java'
+    apply from: "$rootProject.projectDir/dependencies.gradle"
+    apply from: "$rootProject.projectDir/utils.gradle"
+    group = project_group
+    version = project_version
+    sourceCompatibility = project_jdk
+    targetCompatibility = project_jdk
+
+    /*编译、执行：编码UTF-8*/
+    [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+    tasks.withType(JavaExec) { jvmArgs += ['-Dfile.encoding=UTF-8'] }
+
+    /* application项目配置 */
+    if (types[prj.name] == 'exe') {
+
+        apply plugin: 'application'
+
+        applicationDefaultJvmArgs = ['-Dfile.encoding=UTF-8']
+        startScripts { //CLASSPATH增加APP_HOME
+            doLast {
+                unixScript.text = unixScript.text.replace('CLASSPATH=\$APP_HOME/', 'CLASSPATH=\$APP_HOME:\$APP_HOME/')
+                windowsScript.text = windowsScript.text.replace('CLASSPATH=%APP_HOME%\\', 'CLASSPATH=%APP_HOME%;%APP_HOME%\\')
+            }
+        }
+    }
+    jar {
+        excludes = ['config', 'profile', 'env.properties'] /* 忽略配置 */
+        doFirst {
+            manifest = defaultManifest([project: prj, projectVendor: project_vendor])
+        }
+    }
+    configurations {
+        /* 忽略的包 */
+        all*.exclude module: 'slf4j-log4j12'
+        all*.exclude module: 'commons-logging-api'
+    }
+}
+
+/* 发布 */
+task release(type: Zip) {
+
+    // 打包文件名和目标路径
+    baseName = "${rootProject.name}-${rootProject.version}"
+    destinationDir = file("$buildDir/distributions")
+    // 删除已存在的文件包
+    doFirst {
+        println "delete : " + fileTree(dir: destinationDir, include: "*.zip").files
+        delete fileTree(dir: destinationDir, include: "*.zip")
+    }
+    def dependTasks = []    // release任务依赖的子项目distZip
+    def projectZips = []    // 需要一起打包的子项目zip包
+    listExe.each { prj ->
+        dependTasks.add(prj.getTasksByName('distZip', true))
+        projectZips.add(fileTree(dir: prj.distsDir, include: "*.zip"))
+    }
+    // 依赖子项目的distZip任务
+    dependsOn = dependTasks
+    // 添加文件
+    into('sm-rctl') {
+        from projectZips
+        // from fileTree(rootProject.file("scripts"))
+    }
+    doLast {
+        println "output : " + fileTree(dir: destinationDir, include: "*.zip").files
+    }
+}
