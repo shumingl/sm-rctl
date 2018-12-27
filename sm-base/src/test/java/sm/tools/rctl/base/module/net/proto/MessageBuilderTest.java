@@ -16,6 +16,7 @@ public class MessageBuilderTest {
         Header header = new Header(uuid);
         header.withNick("shumingl")
                 .withAuth("0001", "0002", "password")
+                .withTransCode("0000")
                 .withStat(0, 1);
 
         CommandBody commandBody = new CommandBody("%userprofile%", "cmd /c start /b cmd.exe");

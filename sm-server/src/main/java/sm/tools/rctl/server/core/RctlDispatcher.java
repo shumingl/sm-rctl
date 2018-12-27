@@ -72,7 +72,7 @@ public class RctlDispatcher extends Thread {
                 logger.info("[{}] return   {}: length={}", thread, info, bytes.length);
 
                 // ========应答返回给客户机========
-                logger.info("[{}] response {}:{}", thread, clientHost, clientPort);
+                logger.info("[{}] response {}: {}", thread, clientHost, clientPort);
                 outputStream.write(bytes);
                 outputStream.flush();
             }

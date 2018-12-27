@@ -8,33 +8,36 @@ import java.net.InetAddress;
 public class Header {
 
     @FieldOrder(0)
-    private String session;
+    private String transCode;
 
     @FieldOrder(1)
-    private String id;
+    private String session;
 
     @FieldOrder(2)
-    private String password;
+    private String id;
 
     @FieldOrder(3)
-    private String nick;
+    private String password;
 
     @FieldOrder(4)
-    private String ip;
+    private String nick;
 
     @FieldOrder(5)
-    private String mac;
+    private String ip;
 
     @FieldOrder(6)
-    private int index;
+    private String mac;
 
     @FieldOrder(7)
-    private int total;
+    private int index;
 
     @FieldOrder(8)
-    private String target;
+    private int total;
 
     @FieldOrder(9)
+    private String target;
+
+    @FieldOrder(10)
     private String bodyType;
 
     public Header() {
@@ -54,6 +57,11 @@ public class Header {
         } catch (Exception e) {
             throw new RuntimeException("获取本机网卡信息失败", e);
         }
+    }
+
+    public Header withTransCode(String transCode) {
+        this.transCode = transCode;
+        return this;
     }
 
     public Header withNick(String nick) {
@@ -77,6 +85,14 @@ public class Header {
         this.index = index;
         this.total = total;
         return this;
+    }
+
+    public String getTransCode() {
+        return transCode;
+    }
+
+    public void setTransCode(String transCode) {
+        this.transCode = transCode;
     }
 
     public String getSession() {
