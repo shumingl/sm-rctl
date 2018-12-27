@@ -71,6 +71,7 @@ ext.libs = [
         "commons-net"             : "commons-net:commons-net:3.6",
         "commons-lang3"           : "org.apache.commons:commons-lang3:3.1",
         "commons-codec"           : "commons-codec:commons-codec:1.10",
+        "commons-beanutils"       : "commons-beanutils:commons-beanutils:1.9.3",
         "httpclient"              : "org.apache.httpcomponents:httpclient:4.5.3",
         "httpmime"                : "org.apache.httpcomponents:httpmime:4.5.3",
         "mina-sshd"               : "org.apache.sshd:sshd-core:1.7.0",

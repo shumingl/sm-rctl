@@ -1,7 +1,14 @@
 dependencies {
     compile(
             libs."commons-codec",
-            libs."joda-time"
+            libs."joda-time",
+            libs."slf4j-api",
+            libs."logback-core",
+            libs."logback-access",
+            libs."logback-classic",
+            libs."logback-ext-spring",
+            libs."jackson-databind",
+            libs."commons-beanutils"
     )
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

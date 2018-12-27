@@ -8,7 +8,7 @@ import java.net.InetAddress;
 public class Header {
 
     @FieldOrder(0)
-    private String msgId;
+    private String session;
 
     @FieldOrder(1)
     private String id;
@@ -37,13 +37,17 @@ public class Header {
     @FieldOrder(9)
     private int total;
 
-    public Header(String msgId, InetAddress address) {
+    public Header() {
+    }
+
+    public Header(String session) {
         try {
+            InetAddress address = NetworkUtils.getLocalHostAddress();
             this.ip = address.getHostAddress();
             this.mac = NetworkUtils.getMacAddress(address);
             this.index = 0;
             this.total = 1;
-            this.msgId = msgId;
+            this.session = session;
         } catch (Exception e) {
             throw new RuntimeException("获取本机网卡信息失败", e);
         }
@@ -76,12 +80,12 @@ public class Header {
         return this;
     }
 
-    public String getMsgId() {
-        return msgId;
+    public String getSession() {
+        return session;
     }
 
-    public void setMsgId(String msgId) {
-        this.msgId = msgId;
+    public void setSession(String session) {
+        this.session = session;
     }
 
     public String getId() {

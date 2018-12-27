@@ -1,6 +1,7 @@
 package sm.tools.rctl.base.module.net.utils;
 
 import sm.tools.rctl.base.module.net.annotation.FieldOrder;
+import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.utils.ReflectUtil;
 
@@ -24,7 +25,7 @@ public class ProtocolUtils {
         if (length < 0) return new byte[0];
 
         byte[] bytes = new byte[length];
-        int limit = Math.min(length, 4);
+        int limit = Math.min(length, RctlConstants.TOTAL_LENGTH_BYTES);
 
         for (int i = 0; i < limit; i++)
             bytes[limit - i - 1] = (byte) (value >> (i * 8) & 0xff);
@@ -41,7 +42,7 @@ public class ProtocolUtils {
 
         if (bytes == null) return -1;
 
-        int limit = Math.min(length, 4);
+        int limit = Math.min(length, RctlConstants.TOTAL_LENGTH_BYTES);
         int value = 0;
         for (int i = 0; i < limit; i++) {
             value |= ((bytes[offset + i] & 0xFF) << ((limit - i - 1) * 8));
@@ -67,8 +68,8 @@ public class ProtocolUtils {
 
     public static void main(String[] args) {
         int value = Integer.MAX_VALUE;
-        byte[] bytes = int2bytes(value, 4);
+        byte[] bytes = int2bytes(value, RctlConstants.TOTAL_LENGTH_BYTES);
         System.out.println(bytes2int(bytes));
-        System.out.println(getOrderedFields(Header.class));
+        System.out.println(ProtocolCache.get(Header.class));
     }
 }
