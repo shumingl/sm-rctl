@@ -14,7 +14,7 @@ public class Header {
     private String id;
 
     @FieldOrder(2)
-    private String token;
+    private String password;
 
     @FieldOrder(3)
     private String nick;
@@ -26,16 +26,16 @@ public class Header {
     private String mac;
 
     @FieldOrder(6)
-    private String username;
-
-    @FieldOrder(7)
-    private String password;
-
-    @FieldOrder(8)
     private int index;
 
-    @FieldOrder(9)
+    @FieldOrder(7)
     private int total;
+
+    @FieldOrder(8)
+    private String target;
+
+    @FieldOrder(9)
+    private String bodyType;
 
     public Header() {
     }
@@ -43,19 +43,17 @@ public class Header {
     public Header(String session) {
         try {
             InetAddress address = NetworkUtils.getLocalHostAddress();
+            String macAddress = NetworkUtils.getMacAddress(address);
+
             this.ip = address.getHostAddress();
-            this.mac = NetworkUtils.getMacAddress(address);
+            this.mac = macAddress.replace("-", "");
             this.index = 0;
             this.total = 1;
             this.session = session;
+
         } catch (Exception e) {
             throw new RuntimeException("获取本机网卡信息失败", e);
         }
-    }
-
-    public Header withId(String id) {
-        this.id = id;
-        return this;
     }
 
     public Header withNick(String nick) {
@@ -63,13 +61,14 @@ public class Header {
         return this;
     }
 
-    public Header withToken(String token) {
-        this.token = token;
+    public Header withBodyType(String bodyType) {
+        this.bodyType = bodyType;
         return this;
     }
 
-    public Header withAuth(String username, String password) {
-        this.username = username;
+    public Header withAuth(String id, String target, String password) {
+        this.id = id;
+        this.target = target;
         this.password = password;
         return this;
     }
@@ -96,14 +95,6 @@ public class Header {
         this.id = id;
     }
 
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
     public String getNick() {
         return nick;
     }
@@ -128,14 +119,6 @@ public class Header {
         this.mac = mac;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public String getPassword() {
         return password;
     }
@@ -158,5 +141,21 @@ public class Header {
 
     public void setTotal(int total) {
         this.total = total;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public String getBodyType() {
+        return bodyType;
+    }
+
+    public void setBodyType(String bodyType) {
+        this.bodyType = bodyType;
     }
 }

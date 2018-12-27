@@ -12,10 +12,10 @@ public class MessageBuilderTest {
     @Test
     public void build() {
         // 构建请求报文
-        String uuid = UUID.randomUUID().toString();
+        String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Header header = new Header(uuid);
-        header.withId("123456").withNick("shumingl").withToken("ABCDEFGHIJKLMN")
-                .withAuth("shumingl", "password")
+        header.withNick("shumingl")
+                .withAuth("0001", "0002", "password")
                 .withStat(0, 1);
 
         CommandBody commandBody = new CommandBody("%userprofile%", "cmd /c start /b cmd.exe");
