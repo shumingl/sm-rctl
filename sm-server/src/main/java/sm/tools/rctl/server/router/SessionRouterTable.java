@@ -7,10 +7,10 @@ import java.net.Socket;
 
 public class SessionRouterTable {
 
-    public static final String CACHE_KEY_ROUTER = "server.core.router";
+    public static final String CACHE_KEY_ROUTER = "server.core.routers";
 
-    public static void put(String session, Socket client, Socket remote) {
-        MemoryCache.put(CACHE_KEY_ROUTER, session, new SessionRouter(session, client, remote));
+    public static void put(SessionRouter sessionRouter) {
+        MemoryCache.put(CACHE_KEY_ROUTER, sessionRouter.getSession(), sessionRouter);
     }
 
     public static Socket getClient(String session) {
@@ -29,13 +29,13 @@ public class SessionRouterTable {
         return MemoryCache.remove(CACHE_KEY_ROUTER, session);
     }
 
-    public static void merge(String session, Socket client, Socket remote) {
-        if (MemoryCache.contains(CACHE_KEY_ROUTER, session)) {
-            SessionRouter sessionRouter = MemoryCache.get(CACHE_KEY_ROUTER, session);
-            if (client != null) sessionRouter.setClient(client);
-            if (remote != null) sessionRouter.setRemote(remote);
+    public static void merge(SessionRouter sessionRouter) {
+        if (MemoryCache.contains(CACHE_KEY_ROUTER, sessionRouter.getSession())) {
+            SessionRouter router = MemoryCache.get(CACHE_KEY_ROUTER, sessionRouter.getSession());
+            if (sessionRouter.getClient() != null) router.setClient(sessionRouter.getClient());
+            if (sessionRouter.getRemote() != null) router.setRemote(sessionRouter.getRemote());
         } else {
-            put(session, client, remote);
+            put(sessionRouter);
         }
     }
 

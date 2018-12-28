@@ -69,17 +69,17 @@ public class MessageBuilder<T> {
                 Serializer serializer = serializers[0].value().newInstance();
                 byte[] fieldBuffer = serializer.serialize(value, charset);
                 byte[] lengthBuffer = ProtocolUtils.int2bytes(fieldBuffer.length, RctlConstants.FIELD_LENGTH_BYTES);
-                fillField(lengthBuffer, fieldBuffer); // 写入字段长度和字段值
+                append(lengthBuffer, fieldBuffer); // 写入字段长度和字段值
             } else {
                 String stringValue = String.valueOf(value);
                 byte[] fieldBuffer = stringValue.getBytes(charset);
                 byte[] lengthBuffer = ProtocolUtils.int2bytes(fieldBuffer.length, RctlConstants.FIELD_LENGTH_BYTES);
-                fillField(lengthBuffer, fieldBuffer); // 写入字段长度和字段值
+                append(lengthBuffer, fieldBuffer); // 写入字段长度和字段值
             }
         }
     }
 
-    private void fillField(byte[]... byteArrays) {
+    private void append(byte[]... byteArrays) {
         for (byte[] byteArray : byteArrays) {
             ByteArrayUtils.fill(byteArray, buffer, offset);
             offset += byteArray.length;
