@@ -1,6 +1,7 @@
 package sm.tools.rctl.base.module.net.proto;
 
 import org.apache.commons.beanutils.BeanUtils;
+import sm.tools.rctl.base.module.cache.MemoryCache;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.utils.ProtocolCache;
 import sm.tools.rctl.base.module.net.utils.ProtocolUtils;
@@ -10,6 +11,9 @@ import sm.tools.rctl.base.utils.IOUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -19,8 +23,14 @@ public class MessageResolver<T> {
     private Charset charset;
     private Header header;
     private T body;
-    private byte[] result;
+    private byte[] bytes;
     private int offset;
+    private int length;
+    private long timeout;
+
+    public MessageResolver(InputStream inputStream) {
+        this(inputStream, RctlConstants.CHARSET_UTF8);
+    }
 
     public MessageResolver(InputStream inputStream, String charset) {
         this(inputStream, Charset.forName(charset));
@@ -30,22 +40,7 @@ public class MessageResolver<T> {
         this.inputStream = inputStream;
         this.charset = charset;
         this.offset = 0;
-    }
-
-    public byte[] getBytes() {
-        return result;
-    }
-
-    public Message<T> resolve(Class<T> bodyClass) {
-        try {
-            resolveLength();
-            resolveHeader();
-            resolveBody(bodyClass);
-
-            return new Message<>(header, body);
-        } catch (Exception e) {
-            throw new RuntimeException("报文解析失败", e);
-        }
+        this.timeout = 10000;
     }
 
     /**
@@ -55,12 +50,33 @@ public class MessageResolver<T> {
      */
     private void resolveLength() throws IOException {
         byte[] bytes = new byte[RctlConstants.TOTAL_LENGTH_BYTES];
-        IOUtil.readFixedBytes(inputStream, bytes);
-        int length = ProtocolUtils.bytes2int(bytes, 0, bytes.length);
-        result = new byte[length + RctlConstants.TOTAL_LENGTH_BYTES];
+        IOUtil.readFixedBytes(inputStream, bytes, timeout);
+        length = ProtocolUtils.bytes2int(bytes, 0, bytes.length);
+        this.bytes = new byte[length + RctlConstants.TOTAL_LENGTH_BYTES];
 
-        ByteArrayUtils.fill(bytes, result, 0);
+        ByteArrayUtils.fill(bytes, this.bytes, 0);
         offset += RctlConstants.TOTAL_LENGTH_BYTES;
+    }
+
+    public Message<T> resolve() throws IOException {
+        try {
+            resolveLength();
+            resolveHeader();
+            resolveBody();
+            return new Message<>(header, body);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("报文解析失败", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<T> getActionMessageBodyType() throws ClassNotFoundException {
+        Method handler = MemoryCache.get(RctlConstants.CACHE_KEY_HANDLER, header.getAction());
+        Type[] types = handler.getGenericParameterTypes();
+        String bodyTypeName = ((ParameterizedType) types[1]).getActualTypeArguments()[0].getTypeName();
+        return (Class<T>) Class.forName(bodyTypeName);
     }
 
     private <PART> PART resolvePart(Class<PART> objectClass) throws Exception {
@@ -68,10 +84,10 @@ public class MessageResolver<T> {
         List<Field> orderedFields = ProtocolCache.get(objectClass);
         for (Field field : orderedFields) {
             // 解析2字节长度
-            byte[] lengthBuffer = read2buffer(inputStream, RctlConstants.FIELD_LENGTH_BYTES);
+            byte[] lengthBuffer = read2buffer(RctlConstants.FIELD_LENGTH_BYTES);
             int fieldLength = ProtocolUtils.bytes2int(lengthBuffer);
             // 根据长度解析字段内容
-            byte[] fieldBuffer = read2buffer(inputStream, fieldLength);
+            byte[] fieldBuffer = read2buffer(fieldLength);
             String fieldValue = new String(fieldBuffer, charset);
             // 赋值
             BeanUtils.setProperty(part, field.getName(), fieldValue);
@@ -79,10 +95,10 @@ public class MessageResolver<T> {
         return part;
     }
 
-    private byte[] read2buffer(InputStream inputStream, int length) throws IOException {
+    private byte[] read2buffer(int length) throws IOException {
         byte[] bytes = new byte[length];
-        IOUtil.readFixedBytes(inputStream, bytes);
-        ByteArrayUtils.fill(bytes, result, offset);
+        IOUtil.readFixedBytes(inputStream, bytes, timeout);
+        ByteArrayUtils.fill(bytes, this.bytes, offset);
         offset += length;
         return bytes;
     }
@@ -91,8 +107,19 @@ public class MessageResolver<T> {
         this.header = resolvePart(Header.class);
     }
 
-    private void resolveBody(Class<T> bodyClass) throws Exception {
-        this.body = resolvePart(bodyClass);
+    private void resolveBody() throws Exception {
+        Class<T> bodyClass = getActionMessageBodyType();
+        if (bodyClass == null) {
+            int remainBytes = length - offset + 1;
+            read2buffer(remainBytes);
+        } else {
+            this.body = resolvePart(bodyClass);
+        }
+    }
+
+    public MessageResolver<T> withTimeout(long timeout) {
+        this.timeout = timeout;
+        return this;
     }
 
     public Header getHeader() {

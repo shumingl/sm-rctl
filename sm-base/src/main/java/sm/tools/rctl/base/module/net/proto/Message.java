@@ -10,8 +10,10 @@ public class Message<T> implements Serializable {
     public Message(Header header, T body) {
         this.header = header;
         this.body = body;
-        if (body != null)
-            this.header.withBodyType(body.getClass().getName());
+    }
+
+    public Message<T> withBytes(byte[] bytes) {
+        return this;
     }
 
     public Header getHeader() {

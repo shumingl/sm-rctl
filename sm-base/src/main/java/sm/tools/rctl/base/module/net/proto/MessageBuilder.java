@@ -20,16 +20,22 @@ public class MessageBuilder<T> {
     private Charset charset;
     private Message<T> message;
 
-    public MessageBuilder(Charset charset) {
+    public MessageBuilder(Message<T> message) {
+        this(message, RctlConstants.CHARSET_UTF8);
+    }
+
+    public MessageBuilder(Message<T> message, Charset charset) {
+        this.message = message;
         this.charset = charset;
         this.offset = RctlConstants.TOTAL_LENGTH_BYTES;
         this.buffer = new byte[RctlConstants.MAX_MESSAGE_LENGTH];
-    }
 
-    public MessageBuilder<T> withMessage(Message<T> message) {
-        this.message = message;
         ProtocolCache.put(message.getHeader().getClass());
         ProtocolCache.put(message.getBody().getClass());
+    }
+
+    public MessageBuilder<T> withCharset(Charset charset) {
+        this.charset = charset;
         return this;
     }
 

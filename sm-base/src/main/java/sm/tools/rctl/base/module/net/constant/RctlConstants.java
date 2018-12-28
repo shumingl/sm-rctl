@@ -12,4 +12,7 @@ public class RctlConstants {
     public static final int FIELD_LENGTH_BYTES = 2;
 
     public static final int MAX_MESSAGE_LENGTH = 1024 * 1024;
+
+    public static final String CACHE_KEY_HANDLER = "server.core.handlers";
+
 }

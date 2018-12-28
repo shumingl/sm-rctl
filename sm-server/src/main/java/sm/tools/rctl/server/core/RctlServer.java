@@ -9,6 +9,7 @@ public class RctlServer {
     private ServerSocket server;
     private ExecutorService pool;
     private int port;
+    private static final RctlHandler handler = new RctlHandler();
 
     public RctlServer(int port) {
         this.port = port;
@@ -17,5 +18,9 @@ public class RctlServer {
     public void startup() throws IOException {
         pool = Executors.newFixedThreadPool(20);
         server = new ServerSocket(port);
+    }
+
+    public static RctlHandler getHandler() {
+        return handler;
     }
 }
