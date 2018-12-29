@@ -32,17 +32,17 @@ public class RctlHandler {
 
         logger.info("开始注册：" + body.getId());
         if (RemoteHostTable.exists(body.getId())) {
-            write(socket, new Message<>(header, new ReturnMessage(RESULT.FAILED, "主机已存在")));
+            response(socket, new Message<>(header, new ReturnMessage(RESULT.FAILED, "主机已存在")));
             logger.info("主机已存在：" + body.getId());
         } else {
             RemoteHostTable.put(new RemoteHost(body.getId(), body.getToken()));
-            write(socket, new Message<>(header, new ReturnMessage(RESULT.SUCCEED, "注册成功")));
+            response(socket, new Message<>(header, new ReturnMessage(RESULT.SUCCEED, "注册成功")));
             logger.info("注册成功：" + body.getId());
         }
     }
 
     @ActionHandler("beat")
-    public void remoteHeartBeat(Socket socket, Message<HeartBeat> message) {
+    public void remoteHeartBeat(Socket socket, Message<HeartBeat> message) throws IOException {
 
         Logger logger = LoggerFactory.getLogger(RctlHandler.class.getName() + ".remoteHeartBeat");
 
@@ -58,8 +58,8 @@ public class RctlHandler {
                 long send = (receive + 1) % RctlConstants.HEART_BEAT_MOD_MAX;
                 long expect = (send + 1) % RctlConstants.HEART_BEAT_MOD_MAX;
 
-                write(socket, new Message<>(header, new HeartBeat(send)));// 将心跳反馈包发送给客户机，(seq+1) % Long.MAX_VALUE
-                Message<HeartBeat> request = read(socket, HeartBeat.class);// 等待客户机发送新的心跳包
+                response(socket, new Message<>(header, new HeartBeat(send)));// 将心跳反馈包发送给客户机
+                Message<HeartBeat> request = receive(socket, HeartBeat.class);// 等待客户机发送新的心跳包
 
                 beat = request.getBody();
                 if (expect != beat.getSeq())
@@ -67,17 +67,18 @@ public class RctlHandler {
 
             } catch (IOException e) {
                 logger.error("客户端连接异常", e);
+                throw e;
             } catch (Exception e) {
                 logger.error("心跳错误", e);
             }
         }
     }
 
-    private <T> Message<T> read(Socket socket, Class<T> bodyClass) throws IOException {
+    private <T> Message<T> receive(Socket socket, Class<T> bodyClass) throws IOException {
         return new MessageResolver<T>(socket.getInputStream()).resolve(bodyClass);
     }
 
-    private <T> void write(Socket socket, Message<T> message) throws IOException {
+    private <T> void response(Socket socket, Message<T> message) throws IOException {
         OutputStream outputStream = socket.getOutputStream();
         outputStream.write(new MessageBuilder<>(message).build());
         outputStream.flush();
