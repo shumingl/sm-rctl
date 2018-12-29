@@ -29,12 +29,13 @@ public class RctlWorker extends Thread {
         String clientHost = socket.getInetAddress().getHostAddress();
         int clientPort = socket.getPort();
 
-        logger.info("[{}] accepted [{}:{}]", thread, clientHost, clientPort);
+        logger.info("[{}] accept [{}:{}]", thread, clientHost, clientPort);
         try {
             InputStream inputStream = socket.getInputStream();
-            Message<?> message = new MessageResolver(inputStream).resolve();
+            Message<?> message = new MessageResolver(inputStream).resolve(null);
             String action = message.getHeader().getAction();
             Method handler = MemoryCache.get(RctlConstants.CACHE_KEY_HANDLER, action);
+            logger.info("[{}] handle [{}->{}]", thread, action, handler);
             handler.invoke(RctlServer.getHandler(), socket, message);
         } catch (Exception e) {
             logger.error(String.format("[%s]处理请求发生错误", thread), e);

@@ -10,6 +10,12 @@ public class MessagePrinter {
     private byte[] bytes;
     private int offset;
 
+    public MessagePrinter(byte[] bytes) {
+        this.bytes = bytes;
+        this.charset = RctlConstants.CHARSET_UTF8;
+        this.offset = 0;
+    }
+
     public MessagePrinter(byte[] bytes, Charset charset) {
         this.bytes = bytes;
         this.charset = charset;

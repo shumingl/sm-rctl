@@ -8,15 +8,18 @@ public class Header {
     private String session;
 
     @FieldOrder(1)
-    private String id;
-
-    @FieldOrder(2)
-    private String token;
-
-    @FieldOrder(3)
     private String action;
 
     public Header() {
+    }
+
+    public Header(String session, String action) {
+        this.session = session;
+        this.action = action;
+    }
+
+    public Header(String action) {
+        this.action = action;
     }
 
     public Header withSession(String session) {
@@ -26,12 +29,6 @@ public class Header {
 
     public Header withAction(String action) {
         this.action = action;
-        return this;
-    }
-
-    public Header withAuth(String id, String token) {
-        this.id = id;
-        this.token = token;
         return this;
     }
 
@@ -49,22 +46,6 @@ public class Header {
 
     public void setSession(String session) {
         this.session = session;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 
 }

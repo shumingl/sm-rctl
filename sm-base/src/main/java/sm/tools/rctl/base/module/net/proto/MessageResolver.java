@@ -58,11 +58,11 @@ public class MessageResolver<T> {
         offset += RctlConstants.TOTAL_LENGTH_BYTES;
     }
 
-    public Message<T> resolve() throws IOException {
+    public Message<T> resolve(Class<T> bodyClass) throws IOException {
         try {
             resolveLength();
             resolveHeader();
-            resolveBody();
+            resolveBody(bodyClass);
             return new Message<>(header, body);
         } catch (IOException e) {
             throw e;
@@ -72,7 +72,7 @@ public class MessageResolver<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private Class<T> getActionMessageBodyType() throws ClassNotFoundException {
+    private Class<T> getBodyType() throws ClassNotFoundException {
         Method handler = MemoryCache.get(RctlConstants.CACHE_KEY_HANDLER, header.getAction());
         Type[] types = handler.getGenericParameterTypes();
         String bodyTypeName = ((ParameterizedType) types[1]).getActualTypeArguments()[0].getTypeName();
@@ -107,8 +107,9 @@ public class MessageResolver<T> {
         this.header = resolvePart(Header.class);
     }
 
-    private void resolveBody() throws Exception {
-        Class<T> bodyClass = getActionMessageBodyType();
+    private void resolveBody(Class<T> bodyClass) throws Exception {
+        if (bodyClass == null)
+            bodyClass = getBodyType();
         if (bodyClass == null) {
             int remainBytes = length - offset + 1;
             read2buffer(remainBytes);
@@ -128,5 +129,9 @@ public class MessageResolver<T> {
 
     public T getBody() {
         return body;
+    }
+
+    public byte[] getBytes() {
+        return bytes;
     }
 }

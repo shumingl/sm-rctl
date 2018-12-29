@@ -3,6 +3,7 @@ package sm.tools.rctl.base.module.net.utils;
 import sm.tools.rctl.base.module.net.annotation.FieldOrder;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.proto.Header;
+import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
 import sm.tools.rctl.base.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -70,6 +71,11 @@ public class ProtocolUtils {
         int value = Integer.MAX_VALUE;
         byte[] bytes = int2bytes(value, RctlConstants.TOTAL_LENGTH_BYTES);
         System.out.println(bytes2int(bytes));
-        System.out.println(ProtocolCache.get(Header.class));
+
+        System.out.println(ProtocolCache.get(ReturnMessage.class));
+        if (ProtocolCache.exists(ReturnMessage.class))
+            System.out.println(ProtocolCache.get(ReturnMessage.class));
+        else
+            System.out.println("not exists.");
     }
 }

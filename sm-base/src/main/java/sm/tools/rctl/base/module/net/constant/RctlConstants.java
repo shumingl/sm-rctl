@@ -15,4 +15,6 @@ public class RctlConstants {
 
     public static final String CACHE_KEY_HANDLER = "server.core.handlers";
 
+    public static final long HEART_BEAT_MOD_MAX = 1024L;
+
 }

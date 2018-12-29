@@ -1,4 +1,4 @@
-package sm.tools.rctl.server.core.body;
+package sm.tools.rctl.base.module.net.proto.body;
 
 import sm.tools.rctl.base.module.net.annotation.FieldOrder;
 

@@ -41,7 +41,7 @@ public class ProtocolCache {
     }
 
     public static List<Field> get(Class<?> objectClass) {
-        return classOrderedFieldsCache.putIfAbsent(objectClass, resolve(objectClass));
+        return classOrderedFieldsCache.computeIfAbsent(objectClass, value -> resolve(objectClass));
     }
 
     public static List<Field> remove(Class<?> objectClass) {

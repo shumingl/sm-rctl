@@ -11,7 +11,7 @@ public class RemoteHostTable {
     }
 
     public static String getToken(String id) {
-        if (MemoryCache.contains(CACHE_KEY_HOST, id))
+        if (exists(id))
             return MemoryCache.<RemoteHost>get(CACHE_KEY_HOST, id).getToken();
         return null;
     }
@@ -21,11 +21,15 @@ public class RemoteHostTable {
     }
 
     public static void merge(RemoteHost remoteHost) {
-        if (MemoryCache.contains(CACHE_KEY_HOST, remoteHost.getId())) {
+        if (exists(remoteHost.getId())) {
             RemoteHost host = MemoryCache.get(CACHE_KEY_HOST, remoteHost.getId());
             if (remoteHost.getToken() != null) host.setToken(remoteHost.getToken());
         } else {
             put(remoteHost);
         }
+    }
+
+    public static boolean exists(String id) {
+        return MemoryCache.contains(CACHE_KEY_HOST, id);
     }
 }

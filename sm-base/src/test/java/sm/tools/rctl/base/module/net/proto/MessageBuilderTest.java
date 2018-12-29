@@ -21,7 +21,6 @@ public class MessageBuilderTest {
         String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Header header = new Header()
                 .withSession(uuid)
-                .withAuth("0001", "password")
                 .withAction("0000");
 
         CommandBody commandBody = new CommandBody("%userprofile%", "cmd /c start /b cmd.exe");

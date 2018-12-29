@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false">
+    <property name="pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %X{username} %-5level %logger[%L] - %msg%n"/>
+    <property name="file.base" value="${application_logback.base}"/>
+    <property name="file.name" value="sm-server"/>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${file.base}/${file.name}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${file.base}/${file.name}.%d{yyyyMMdd}.log</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.springframework" level="info"/>
+    <logger name="io.netty" level="info"/>
+    <logger name="org.mybatis" level="info"/>
+    <logger name="java.sql" level="debug"/>
+    <logger name="com.zaxxer.hikari" level="info"/>
+    <logger name="org.apache" level="info"/>
+
+    <!--日志-->
+    <root level="debug">
+        <appender-ref ref="console"/>
+        <!--<appender-ref ref="logstash"/>-->
+    </root>
+</configuration>

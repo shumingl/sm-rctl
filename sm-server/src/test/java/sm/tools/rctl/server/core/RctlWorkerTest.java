@@ -8,14 +8,12 @@ import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.proto.*;
 import sm.tools.rctl.server.core.annotation.ActionHandler;
 import sm.tools.rctl.server.core.annotation.ActionHandlerScanner;
-import sm.tools.rctl.server.core.body.Command;
+import sm.tools.rctl.base.module.net.proto.body.Command;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.UUID;
-
-import static org.junit.Assert.*;
 
 public class RctlWorkerTest {
     @Before
@@ -39,10 +37,9 @@ public class RctlWorkerTest {
         String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Header header = new Header()
                 .withSession(uuid)
-                .withAuth("0001", "password")
                 .withAction("0000");
 
-        Command commandBody = new Command("%userprofile%", "cmd /c start /b cmd.exe");
+        Command commandBody = new Command("user", "cmd /c start /b cmd.exe");
         Message<Command> msg = new Message<>(header, commandBody);
         // 序列化，打印
         MessageBuilder<Command> builder = new MessageBuilder<>(msg);
@@ -51,7 +48,7 @@ public class RctlWorkerTest {
         System.out.println(printer.print());
         // 反序列化
         MessageResolver<?> resolver = new MessageResolver<>(new ByteArrayInputStream(result));
-        Message<?> message = resolver.resolve();
+        Message<?> message = resolver.resolve(null);
         System.out.println(((Command) message.getBody()).getCommand());
     }
 }

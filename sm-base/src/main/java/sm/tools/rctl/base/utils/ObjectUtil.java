@@ -41,7 +41,7 @@ public class ObjectUtil {
     }
 
     public static String getString(Object object) {
-        if (object == null) return null;
+        if (object == null) return "";
         return String.valueOf(object);
     }
 
@@ -85,18 +85,16 @@ public class ObjectUtil {
         return new BigDecimal(String.valueOf(object));
     }
 
-    public static Number getNumber(Object object) {
-        if (object == null) return null;
-        if (object instanceof Number)
-            return (Number) object;
-        return Double.parseDouble(String.valueOf(object));
-    }
-
     public static Boolean getBoolean(Object object) {
         if (object == null) return null;
         if (object instanceof Boolean)
             return (Boolean) object;
         return Boolean.parseBoolean(String.valueOf(object));
+    }
+
+    public static <T extends Enum<T>> T getEnum(Class<T> enumType, Object object) {
+        String name = getString(object);
+        return Enum.valueOf(enumType, name);
     }
 
 }
