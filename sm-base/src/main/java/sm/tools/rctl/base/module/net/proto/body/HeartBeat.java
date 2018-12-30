@@ -5,6 +5,8 @@ import sm.tools.rctl.base.module.net.annotation.FieldOrder;
 public class HeartBeat {
     @FieldOrder(0)
     private long seq;
+    @FieldOrder(1)
+    private String action;
 
     public HeartBeat() {
     }
@@ -19,5 +21,13 @@ public class HeartBeat {
 
     public void setSeq(long seq) {
         this.seq = seq;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
     }
 }

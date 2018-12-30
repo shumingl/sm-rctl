@@ -2,6 +2,10 @@ package sm.tools.rctl.base.utils;
 
 public class ByteArrayUtils {
 
+    public static void fill(byte[] srcBytes, byte[] dstBytes, int offset, int length) {
+        System.arraycopy(srcBytes, 0, dstBytes, offset, length);
+    }
+
     public static void fill(byte[] srcBytes, byte[] dstBytes, int offset) {
         System.arraycopy(srcBytes, 0, dstBytes, offset, srcBytes.length);
     }

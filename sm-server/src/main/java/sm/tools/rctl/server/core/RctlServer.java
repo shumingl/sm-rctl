@@ -17,7 +17,7 @@ public class RctlServer {
     private ExecutorService pool;
     private int port;
     private volatile boolean stop = false;
-    private static final RctlHandler handler = new RctlHandler();
+    private static final RctlServerHandler handler = new RctlServerHandler();
 
     public RctlServer() {
     }
@@ -57,7 +57,7 @@ public class RctlServer {
         server.close();
     }
 
-    public static RctlHandler getHandler() {
+    public static RctlServerHandler getHandler() {
         return handler;
     }
 }

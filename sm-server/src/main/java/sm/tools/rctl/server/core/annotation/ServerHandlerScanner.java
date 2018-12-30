@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.type.ClassMetadata;
 import org.springframework.core.type.classreading.MetadataReader;
 import sm.tools.rctl.base.module.cache.MemoryCache;
+import sm.tools.rctl.base.module.net.annotation.ActionHandler;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.utils.ReflectUtil;
 import sm.tools.rctl.base.utils.ResourceUtil;
@@ -13,10 +14,10 @@ import sm.tools.rctl.base.utils.string.StringUtil;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class ActionHandlerScanner {
-    private static final Logger logger = LoggerFactory.getLogger(ActionHandlerScanner.class);
+public class ServerHandlerScanner {
+    private static final Logger logger = LoggerFactory.getLogger(ServerHandlerScanner.class);
 
-    public ActionHandlerScanner(String... packages) {
+    public ServerHandlerScanner(String... packages) {
         scan(packages);
     }
 
@@ -45,7 +46,7 @@ public class ActionHandlerScanner {
                     for (Method method : methods) {
                         ActionHandler handler = method.getAnnotation(ActionHandler.class);
                         if (handler != null) {
-                            String cacheKey = RctlConstants.CACHE_KEY_HANDLER;
+                            String cacheKey = RctlConstants.CACHE_KEY_SERVER_HANDLER;
                             logger.info("add cache : {}/{} = {}", cacheKey, handler.value(), method);
                             MemoryCache.put(cacheKey, handler.value(), method);
                         }

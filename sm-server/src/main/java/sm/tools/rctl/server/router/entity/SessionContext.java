@@ -1,28 +1,25 @@
 package sm.tools.rctl.server.router.entity;
 
 import java.net.Socket;
+import java.util.UUID;
 
-public class SessionRouter {
+public class SessionContext {
 
     private String session;
     private Socket client;
     private Socket remote;
 
-    public SessionRouter() {
+    public SessionContext() {
     }
 
-    public SessionRouter(String session, Socket client, Socket remote) {
-        this.session = session;
+    public SessionContext(Socket client, Socket remote) {
+        this.session = UUID.randomUUID().toString();
         this.client = client;
         this.remote = remote;
     }
 
     public String getSession() {
         return session;
-    }
-
-    public void setSession(String session) {
-        this.session = session;
     }
 
     public Socket getClient() {

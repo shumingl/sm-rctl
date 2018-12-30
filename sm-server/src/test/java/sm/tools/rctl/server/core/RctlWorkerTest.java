@@ -6,8 +6,8 @@ import sm.tools.rctl.base.module.core.ConfigureLoader;
 import sm.tools.rctl.base.module.core.LogbackConfigure;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.proto.*;
-import sm.tools.rctl.server.core.annotation.ActionHandler;
-import sm.tools.rctl.server.core.annotation.ActionHandlerScanner;
+import sm.tools.rctl.base.module.net.annotation.ActionHandler;
+import sm.tools.rctl.server.core.annotation.ServerHandlerScanner;
 import sm.tools.rctl.base.module.net.proto.body.Command;
 
 import java.io.ByteArrayInputStream;
@@ -20,7 +20,7 @@ public class RctlWorkerTest {
     public void setUp() throws Exception {
         ConfigureLoader.loadConfig("config/application.properties");
         LogbackConfigure.configure("config/logback.xml");
-        new ActionHandlerScanner("sm.tools.rctl.server.core").scan();
+        new ServerHandlerScanner("sm.tools.rctl.server.core").scan();
     }
 
     @ActionHandler("0000")
@@ -36,8 +36,9 @@ public class RctlWorkerTest {
         // 构建请求报文
         String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Header header = new Header()
+                .withId("0000")
                 .withSession(uuid)
-                .withAction("0000");
+                .withAction("beat");
 
         Command commandBody = new Command("user", "cmd /c start /b cmd.exe");
         Message<Command> msg = new Message<>(header, commandBody);

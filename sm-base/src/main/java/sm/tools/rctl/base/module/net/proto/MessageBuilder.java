@@ -71,7 +71,7 @@ public class MessageBuilder<T> {
                 byte[] lengthBuffer = ProtocolUtils.int2bytes(fieldBuffer.length, RctlConstants.FIELD_LENGTH_BYTES);
                 append(lengthBuffer, fieldBuffer); // 写入字段长度和字段值
             } else {
-                String stringValue = String.valueOf(value);
+                String stringValue = value == null ? "" : value.toString();
                 byte[] fieldBuffer = stringValue.getBytes(charset);
                 byte[] lengthBuffer = ProtocolUtils.int2bytes(fieldBuffer.length, RctlConstants.FIELD_LENGTH_BYTES);
                 append(lengthBuffer, fieldBuffer); // 写入字段长度和字段值

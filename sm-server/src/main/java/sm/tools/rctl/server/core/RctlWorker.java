@@ -4,12 +4,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sm.tools.rctl.base.module.cache.MemoryCache;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
+import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.MessageResolver;
-import sm.tools.rctl.base.utils.IOUtil;
+import sm.tools.rctl.base.utils.IOUtils;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.Socket;
 
 @SuppressWarnings("unchecked")
@@ -32,16 +35,30 @@ public class RctlWorker extends Thread {
         logger.info("[{}] accept [{}:{}]", thread, clientHost, clientPort);
         try {
             InputStream inputStream = socket.getInputStream();
-            Message<?> message = new MessageResolver(inputStream).resolve(null);
-            String action = message.getHeader().getAction();
-            Method handler = MemoryCache.get(RctlConstants.CACHE_KEY_HANDLER, action);
+            MessageResolver<?> resolver = new MessageResolver(inputStream);
+
+            Header header = resolver.resolveHeader();
+            String action = header.getAction();
+            Method handler = MemoryCache.get(RctlConstants.CACHE_KEY_SERVER_HANDLER, action);
+
             logger.info("[{}] handle [{}->{}]", thread, action, handler);
-            handler.invoke(RctlServer.getHandler(), socket, message);
+            handler.invoke(RctlServer.getHandler(), socket,
+                    new Message<>(header, resolver.resolveBody(getBodyType(action))));
+
         } catch (Exception e) {
             logger.error(String.format("[%s]处理请求发生错误", thread), e);
         } finally {
-            IOUtil.closeQuietly(socket);
+            IOUtils.closeQuietly(socket);
         }
 
     }
+
+    @SuppressWarnings("unchecked")
+    private <T> Class<T> getBodyType(String action) throws ClassNotFoundException {
+        Method handler = MemoryCache.get(RctlConstants.CACHE_KEY_SERVER_HANDLER, action);
+        Type[] types = handler.getGenericParameterTypes();
+        String bodyTypeName = ((ParameterizedType) types[1]).getActualTypeArguments()[0].getTypeName();
+        return (Class<T>) Class.forName(bodyTypeName);
+    }
+
 }

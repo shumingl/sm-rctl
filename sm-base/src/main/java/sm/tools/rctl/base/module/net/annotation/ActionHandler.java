@@ -1,4 +1,4 @@
-package sm.tools.rctl.server.core.annotation;
+package sm.tools.rctl.base.module.net.annotation;
 
 import java.lang.annotation.*;
 

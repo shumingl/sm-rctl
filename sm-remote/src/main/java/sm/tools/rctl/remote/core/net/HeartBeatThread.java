@@ -1,21 +1,26 @@
-package sm.tools.rctl.remote.module.net;
+package sm.tools.rctl.remote.core.net;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sm.tools.rctl.base.module.core.ConfigureLoader;
+import sm.tools.rctl.base.module.lang.DynamicHashMap;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.body.HeartBeat;
 import sm.tools.rctl.base.module.net.proto.body.HostRegister;
 import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
+import sm.tools.rctl.base.module.net.proto.body.SessionEstablish;
 import sm.tools.rctl.base.module.net.utils.NetworkUtils;
-import sm.tools.rctl.remote.module.client.RctlClient;
+import sm.tools.rctl.base.utils.string.StringUtil;
+import sm.tools.rctl.remote.core.client.RctlClient;
 
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.Socket;
 
 public class HeartBeatThread extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(HeartBeatThread.class);
+    private static final String configPrefix = "rctl.server.";
     private RctlClient client;
     private String host;
     private int port;
@@ -23,22 +28,26 @@ public class HeartBeatThread extends Thread {
     private static final String id = "0000";
     private static final String token = "shumingl";
 
-    public HeartBeatThread(String host, int port) {
-        this.host = host;
-        this.port = port;
+    public HeartBeatThread() {
+        DynamicHashMap<String, Object> config = ConfigureLoader.prefixConfigMap(configPrefix);
+        this.host = config.getString("host");
+        this.port = config.getInteger("port");
     }
 
     @Override
     public void run() {
         try {
+            logger.info("server : {}:{}", host, port);
             if (register()) {// 注册
-                client = new RctlClient(new Socket(host, port));
+                client = new RctlClient(configPrefix);
                 long seq = 0;
                 while (true) {
                     try {
                         logger.info("Heart Beat SEQ: " + seq);
                         seq = heartBeat(seq);
                         Thread.sleep(1000);
+                    } catch (IOException e) {
+                        throw e;
                     } catch (Exception e) {
                         logger.error("Heart Beat Error", e);
                     }
@@ -52,7 +61,7 @@ public class HeartBeatThread extends Thread {
     }
 
     private boolean register() throws Exception {
-        try (RctlClient client = new RctlClient(new Socket(host, port))) {
+        try (RctlClient client = new RctlClient(configPrefix)) {
 
             InetAddress address = NetworkUtils.getLocalHostAddress();
             String macAddress = NetworkUtils.getMacAddress(address);
@@ -62,7 +71,7 @@ public class HeartBeatThread extends Thread {
                     .withHost(address.getHostName(), macAddress.replace("-", "").toUpperCase());
 
             Message<ReturnMessage> returnMessage = client.send(
-                    new Message<>(new Header("register"), register),
+                    new Message<>(new Header(id, "register"), register),
                     ReturnMessage.class);
 
             ReturnMessage retMsg = returnMessage.getBody();
@@ -74,9 +83,15 @@ public class HeartBeatThread extends Thread {
     private long heartBeat(long seq) throws Exception {
         // 发送心跳包
         Message<HeartBeat> returnMessage = client.send(
-                new Message<>(new Header("beat"), new HeartBeat(seq)), // 0
+                new Message<>(new Header(id, "beat"), new HeartBeat(seq)), // 0
                 HeartBeat.class);
+        Header header = returnMessage.getHeader();
         HeartBeat retBeat = returnMessage.getBody(); // 1
+        String action = retBeat.getAction();
+        if (!StringUtil.isNOE(action)) {
+            SessionEstablish establish = new SessionEstablish(header.getSession());
+            client.send(new Message<>(header, establish), ReturnMessage.class);
+        }
         // 计算下一个序号
         return (retBeat.getSeq() + 1) % RctlConstants.HEART_BEAT_MOD_MAX; // 2
     }

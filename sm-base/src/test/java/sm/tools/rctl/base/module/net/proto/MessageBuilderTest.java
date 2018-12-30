@@ -20,8 +20,9 @@ public class MessageBuilderTest {
         // 构建请求报文
         String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
         Header header = new Header()
+                .withId("0000")
                 .withSession(uuid)
-                .withAction("0000");
+                .withAction("beat");
 
         CommandBody commandBody = new CommandBody("%userprofile%", "cmd /c start /b cmd.exe");
         Message<CommandBody> msg = new Message<>(header, commandBody);
