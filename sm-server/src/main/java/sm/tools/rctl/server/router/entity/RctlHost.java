@@ -1,14 +1,14 @@
 package sm.tools.rctl.server.router.entity;
 
-public class RemoteHost {
+public class RctlHost {
 
     private String id;
     private String token;
 
-    public RemoteHost() {
+    public RctlHost() {
     }
 
-    public RemoteHost(String id, String token) {
+    public RctlHost(String id, String token) {
         this.id = id;
         this.token = token;
     }

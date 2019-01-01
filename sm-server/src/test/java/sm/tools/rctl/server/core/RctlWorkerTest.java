@@ -20,7 +20,7 @@ public class RctlWorkerTest {
     public void setUp() throws Exception {
         ConfigureLoader.loadConfig("config/application.properties");
         LogbackConfigure.configure("config/logback.xml");
-        new ServerHandlerScanner("sm.tools.rctl.server.core").scan();
+        new ServerHandlerScanner("sm.tools.rctl.server.core.handler");
     }
 
     @ActionHandler("0000")

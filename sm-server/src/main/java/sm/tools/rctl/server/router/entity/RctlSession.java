@@ -1,18 +1,19 @@
 package sm.tools.rctl.server.router.entity;
 
-import java.net.Socket;
+import sm.tools.rctl.server.core.RctlChannel;
+
 import java.util.UUID;
 
-public class SessionContext {
+public class RctlSession {
 
     private String session;
-    private Socket client;
-    private Socket remote;
+    private RctlChannel client;
+    private RctlChannel remote;
 
-    public SessionContext() {
+    public RctlSession() {
     }
 
-    public SessionContext(Socket client, Socket remote) {
+    public RctlSession(RctlChannel client, RctlChannel remote) {
         this.session = UUID.randomUUID().toString();
         this.client = client;
         this.remote = remote;
@@ -22,19 +23,19 @@ public class SessionContext {
         return session;
     }
 
-    public Socket getClient() {
+    public RctlChannel getClient() {
         return client;
     }
 
-    public void setClient(Socket client) {
+    public void setClient(RctlChannel client) {
         this.client = client;
     }
 
-    public Socket getRemote() {
+    public RctlChannel getRemote() {
         return remote;
     }
 
-    public void setRemote(Socket remote) {
+    public void setRemote(RctlChannel remote) {
         this.remote = remote;
     }
 }

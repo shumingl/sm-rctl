@@ -41,16 +41,13 @@ public class ServerHandlerScanner {
                 ClassMetadata classMetadata = metadata.getClassMetadata();
                 String className = classMetadata.getClassName();
                 Class<?> clazz = Class.forName(className);
-                List<Method> methods = ReflectUtil.getAllMethods(clazz);
-                if (methods != null && methods.size() > 0) {
-                    for (Method method : methods) {
-                        ActionHandler handler = method.getAnnotation(ActionHandler.class);
-                        if (handler != null) {
-                            String cacheKey = RctlConstants.CACHE_KEY_SERVER_HANDLER;
-                            logger.info("add cache : {}/{} = {}", cacheKey, handler.value(), method);
-                            MemoryCache.put(cacheKey, handler.value(), method);
-                        }
-                    }
+
+                ActionHandler[] actionHandlers = clazz.getAnnotationsByType(ActionHandler.class);
+                if (actionHandlers != null && actionHandlers.length > 0) {
+                    ActionHandler handler = actionHandlers[0];
+                    String cacheKey = RctlConstants.CACHE_KEY_SERVER_HANDLER;
+                    logger.info("add cache : {}/{} = {}", cacheKey, handler.value(), clazz);
+                    MemoryCache.put(cacheKey, handler.value(), clazz.newInstance());
                 }
             }
         } catch (Exception e) {

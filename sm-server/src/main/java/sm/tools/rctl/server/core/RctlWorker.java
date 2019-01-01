@@ -39,11 +39,10 @@ public class RctlWorker extends Thread {
 
             Header header = resolver.resolveHeader();
             String action = header.getAction();
-            Method handler = MemoryCache.get(RctlConstants.CACHE_KEY_SERVER_HANDLER, action);
+            RctlHandler handler = MemoryCache.get(RctlConstants.CACHE_KEY_SERVER_HANDLER, action);
 
             logger.info("[{}] handle [{}->{}]", thread, action, handler);
-            handler.invoke(RctlServer.getHandler(), socket,
-                    new Message<>(header, resolver.resolveBody(getBodyType(action))));
+            handler.handle(new RctlChannel(socket), new Message<>(header, resolver.resolveBody(getBodyType(action))));
 
         } catch (Exception e) {
             logger.error(String.format("[%s]处理请求发生错误", thread), e);
@@ -55,9 +54,9 @@ public class RctlWorker extends Thread {
 
     @SuppressWarnings("unchecked")
     private <T> Class<T> getBodyType(String action) throws ClassNotFoundException {
-        Method handler = MemoryCache.get(RctlConstants.CACHE_KEY_SERVER_HANDLER, action);
-        Type[] types = handler.getGenericParameterTypes();
-        String bodyTypeName = ((ParameterizedType) types[1]).getActualTypeArguments()[0].getTypeName();
+        RctlHandler<?> handler = MemoryCache.get(RctlConstants.CACHE_KEY_SERVER_HANDLER, action);
+        Type[] types = handler.getClass().getGenericInterfaces();
+        String bodyTypeName = ((ParameterizedType) types[0]).getActualTypeArguments()[0].getTypeName();
         return (Class<T>) Class.forName(bodyTypeName);
     }
 

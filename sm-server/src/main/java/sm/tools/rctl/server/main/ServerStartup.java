@@ -17,7 +17,7 @@ public class ServerStartup {
     public static void startup() throws IOException {
         ConfigureLoader.loadConfig("config/application.properties");
         LogbackConfigure.configure(ConfigureLoader.getString("logback.config"));
-        new ServerHandlerScanner("sm.tools.rctl.server.core");
+        new ServerHandlerScanner("sm.tools.rctl.server.core.handler");
         server.startup();
     }
 }

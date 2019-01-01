@@ -1,31 +1,31 @@
 package sm.tools.rctl.server.router;
 
 import sm.tools.rctl.base.module.cache.MemoryCache;
-import sm.tools.rctl.server.router.entity.RemoteHost;
+import sm.tools.rctl.server.router.entity.RctlHost;
 
 public class RemoteHostTable {
     public static final String CACHE_KEY_HOST = "server.core.hosts";
 
-    public static void put(RemoteHost remoteHost) {
-        MemoryCache.put(CACHE_KEY_HOST, remoteHost.getId(), remoteHost);
+    public static void put(RctlHost rctlHost) {
+        MemoryCache.put(CACHE_KEY_HOST, rctlHost.getId(), rctlHost);
     }
 
     public static String getToken(String id) {
         if (exists(id))
-            return MemoryCache.<RemoteHost>get(CACHE_KEY_HOST, id).getToken();
+            return MemoryCache.<RctlHost>get(CACHE_KEY_HOST, id).getToken();
         return null;
     }
 
-    public static RemoteHost remove(String session) {
+    public static RctlHost remove(String session) {
         return MemoryCache.remove(CACHE_KEY_HOST, session);
     }
 
-    public static void merge(RemoteHost remoteHost) {
-        if (exists(remoteHost.getId())) {
-            RemoteHost host = MemoryCache.get(CACHE_KEY_HOST, remoteHost.getId());
-            if (remoteHost.getToken() != null) host.setToken(remoteHost.getToken());
+    public static void merge(RctlHost rctlHost) {
+        if (exists(rctlHost.getId())) {
+            RctlHost host = MemoryCache.get(CACHE_KEY_HOST, rctlHost.getId());
+            if (rctlHost.getToken() != null) host.setToken(rctlHost.getToken());
         } else {
-            put(remoteHost);
+            put(rctlHost);
         }
     }
 
