@@ -32,6 +32,7 @@ public class RemoteSessionThread extends Thread {
             Message<ReturnMessage> response = client.send(new Message<>(header, establish), ReturnMessage.class);
             logger.info(response.getBody().getMessage());
             // 等待和客户端输入
+            // TODO 会话线程逻辑
 
         } catch (Exception e) {
             logger.error("Host Register Error", e);

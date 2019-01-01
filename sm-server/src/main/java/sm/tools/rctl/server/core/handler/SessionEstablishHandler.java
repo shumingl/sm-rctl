@@ -7,10 +7,12 @@ import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
 import sm.tools.rctl.base.module.net.proto.body.SessionEstablish;
+import sm.tools.rctl.base.module.net.rctl.RctlChannel;
+import sm.tools.rctl.base.module.net.rctl.RctlHandler;
 import sm.tools.rctl.base.utils.string.StringUtil;
 import sm.tools.rctl.server.core.*;
 import sm.tools.rctl.server.router.SessionRouterTable;
-import sm.tools.rctl.server.router.entity.RctlSession;
+import sm.tools.rctl.base.module.net.rctl.RctlSession;
 
 import java.io.IOException;
 
@@ -39,7 +41,7 @@ public class SessionEstablishHandler implements RctlHandler<SessionEstablish> {
             } else { // 客户机请求建立会话
 
                 logger.info("请求会话：{}->{}", establish.getFrom(), establish.getTarget());
-                SessionQueue.add(establish.getTarget(), establish);
+                SessionEstablishQueue.add(establish.getTarget(), establish);
                 logger.info("登记完成：{}->{}", establish.getFrom(), establish.getTarget());
 
                 RctlSession session = new RctlSession(channel, null);

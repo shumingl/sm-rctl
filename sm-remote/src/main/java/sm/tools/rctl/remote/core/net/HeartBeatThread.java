@@ -11,6 +11,7 @@ import sm.tools.rctl.base.module.net.proto.body.HeartBeat;
 import sm.tools.rctl.base.module.net.proto.body.HostRegister;
 import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
 import sm.tools.rctl.base.module.net.proto.body.SessionEstablish;
+import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.utils.NetworkUtils;
 import sm.tools.rctl.base.utils.string.StringUtil;
 import sm.tools.rctl.remote.core.client.RctlClient;
@@ -21,7 +22,7 @@ import java.net.InetAddress;
 public class HeartBeatThread extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(HeartBeatThread.class);
     private static final String configPrefix = "rctl.server.";
-    private RctlClient client;
+    private RctlChannel channel;
     private String host;
     private int port;
 
@@ -39,7 +40,7 @@ public class HeartBeatThread extends Thread {
         try {
             logger.info("server : {}:{}", host, port);
             if (register()) {// 注册
-                client = new RctlClient(configPrefix);
+                channel = new RctlChannel(configPrefix);
                 long seq = 0;
                 while (true) {
                     try {
@@ -82,15 +83,16 @@ public class HeartBeatThread extends Thread {
 
     private long heartBeat(long seq) throws Exception {
         // 发送心跳包
-        Message<HeartBeat> returnMessage = client.send(
+        Message<HeartBeat> returnMessage = channel.send(
                 new Message<>(new Header(id, "beat"), new HeartBeat(seq)), // 0
                 HeartBeat.class);
         Header header = returnMessage.getHeader();
         HeartBeat retBeat = returnMessage.getBody(); // 1
         String action = retBeat.getAction();
+        // TODO 此处应该新建会话线程
         if (!StringUtil.isNOE(action)) {
             SessionEstablish establish = new SessionEstablish(header.getSession());
-            client.send(new Message<>(header, establish), ReturnMessage.class);
+            channel.send(new Message<>(header, establish), ReturnMessage.class);
         }
         // 计算下一个序号
         return (retBeat.getSeq() + 1) % RctlConstants.HEART_BEAT_MOD_MAX; // 2

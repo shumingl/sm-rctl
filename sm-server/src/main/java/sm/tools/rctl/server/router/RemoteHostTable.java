@@ -1,7 +1,7 @@
 package sm.tools.rctl.server.router;
 
 import sm.tools.rctl.base.module.cache.MemoryCache;
-import sm.tools.rctl.server.router.entity.RctlHost;
+import sm.tools.rctl.base.module.net.rctl.RctlHost;
 
 public class RemoteHostTable {
     public static final String CACHE_KEY_HOST = "server.core.hosts";

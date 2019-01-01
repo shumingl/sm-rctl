@@ -1,4 +1,4 @@
-package sm.tools.rctl.server.router.entity;
+package sm.tools.rctl.base.module.net.rctl;
 
 public class RctlHost {
 

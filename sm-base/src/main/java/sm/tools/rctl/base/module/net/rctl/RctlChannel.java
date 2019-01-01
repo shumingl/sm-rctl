@@ -1,23 +1,62 @@
-package sm.tools.rctl.server.core;
+package sm.tools.rctl.base.module.net.rctl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sm.tools.rctl.base.module.core.ConfigureLoader;
+import sm.tools.rctl.base.module.lang.DynamicHashMap;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.MessageBuilder;
 import sm.tools.rctl.base.module.net.proto.MessagePrinter;
 import sm.tools.rctl.base.module.net.proto.MessageResolver;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 
-public class RctlChannel {
+public class RctlChannel implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(RctlChannel.class);
 
     private Socket socket;
 
+    public RctlChannel(String configPrefix) throws IOException {
+        DynamicHashMap<String, Object> config = ConfigureLoader.prefixConfigMap(configPrefix);
+        this.socket = new Socket(config.getString("host"), config.getInteger("port"));
+    }
+
     public RctlChannel(Socket socket) {
         this.socket = socket;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public InputStream getInput() throws IOException {
+        return socket.getInputStream();
+    }
+
+    public OutputStream getOutput() throws IOException {
+        return socket.getOutputStream();
+    }
+
+    public InetAddress getRemoteHost() {
+        return socket.getInetAddress();
+    }
+
+    public InetAddress getLocalHost() {
+        return socket.getLocalAddress();
+    }
+
+    public int getRemotePort() {
+        return socket.getPort();
+    }
+
+    public int getLocalPort() {
+        return socket.getLocalPort();
     }
 
     /**
@@ -70,4 +109,8 @@ public class RctlChannel {
 
     }
 
+    @Override
+    public void close() throws IOException {
+        socket.close();
+    }
 }

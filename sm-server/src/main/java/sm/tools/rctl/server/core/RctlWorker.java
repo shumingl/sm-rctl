@@ -7,34 +7,34 @@ import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.MessageResolver;
+import sm.tools.rctl.base.module.net.rctl.RctlChannel;
+import sm.tools.rctl.base.module.net.rctl.RctlHandler;
 import sm.tools.rctl.base.utils.IOUtils;
 
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.net.Socket;
 
 @SuppressWarnings("unchecked")
 public class RctlWorker extends Thread {
 
     private static final Logger logger = LoggerFactory.getLogger(RctlWorker.class);
-    private Socket socket;
+    private RctlChannel channel;
 
-    public RctlWorker(Socket socket) {
-        this.socket = socket;
+    public RctlWorker(RctlChannel channel) {
+        this.channel = channel;
     }
 
     @Override
     public void run() {
 
         String thread = Thread.currentThread().getName();
-        String clientHost = socket.getInetAddress().getHostAddress();
-        int clientPort = socket.getPort();
+        String clientHost = channel.getRemoteHost().getHostAddress();
+        int clientPort = channel.getRemotePort();
 
         logger.info("[{}] accept [{}:{}]", thread, clientHost, clientPort);
         try {
-            InputStream inputStream = socket.getInputStream();
+            InputStream inputStream = channel.getInput();
             MessageResolver<?> resolver = new MessageResolver(inputStream);
 
             Header header = resolver.resolveHeader();
@@ -42,12 +42,12 @@ public class RctlWorker extends Thread {
             RctlHandler handler = MemoryCache.get(RctlConstants.CACHE_KEY_SERVER_HANDLER, action);
 
             logger.info("[{}] handle [{}->{}]", thread, action, handler);
-            handler.handle(new RctlChannel(socket), new Message<>(header, resolver.resolveBody(getBodyType(action))));
+            handler.handle(channel, new Message<>(header, resolver.resolveBody(getBodyType(action))));
 
         } catch (Exception e) {
             logger.error(String.format("[%s]处理请求发生错误", thread), e);
         } finally {
-            IOUtils.closeQuietly(socket);
+            IOUtils.closeQuietly(channel);
         }
 
     }

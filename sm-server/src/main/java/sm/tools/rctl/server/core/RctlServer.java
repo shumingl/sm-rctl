@@ -2,6 +2,7 @@ package sm.tools.rctl.server.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -35,8 +36,8 @@ public class RctlServer {
         logger.info("server startup: port=" + port);
         while (!stop) {
             try {
-                Socket socket = server.accept();
-                pool.execute(new RctlWorker(socket));
+                RctlChannel channel = new RctlChannel(server.accept());
+                pool.execute(new RctlWorker(channel));
                 Thread.sleep(1);
             } catch (Exception e) {
                 logger.error("处理请求失败", e);

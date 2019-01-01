@@ -1,4 +1,4 @@
-package sm.tools.rctl.server.core;
+package sm.tools.rctl.base.module.net.rctl;
 
 import sm.tools.rctl.base.module.net.proto.Message;
 

@@ -1,6 +1,4 @@
-package sm.tools.rctl.server.router.entity;
-
-import sm.tools.rctl.server.core.RctlChannel;
+package sm.tools.rctl.base.module.net.rctl;
 
 import java.util.UUID;
 
