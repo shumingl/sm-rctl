@@ -4,8 +4,7 @@ version = project_version
 ext {
     types = [
             "sm-base"  : "lib",
-            "sm-remote": "lib",
-            "sm-local" : "lib",
+            "sm-client": "lib",
             "sm-server": "lib"
     ]
 }

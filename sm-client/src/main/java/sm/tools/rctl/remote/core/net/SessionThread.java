@@ -8,8 +8,8 @@ import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
 import sm.tools.rctl.base.module.net.proto.body.SessionEstablish;
 import sm.tools.rctl.remote.core.client.RctlClient;
 
-public class RemoteSessionThread extends Thread {
-    private static final Logger logger = LoggerFactory.getLogger(RemoteSessionThread.class);
+public class SessionThread extends Thread {
+    private static final Logger logger = LoggerFactory.getLogger(SessionThread.class);
     private static final String configPrefix = "rctl.server.";
     private RctlClient client;
     private String session;
@@ -18,7 +18,7 @@ public class RemoteSessionThread extends Thread {
     private static final String target = "0000";
     private static final String token = "shumingl";
 
-    public RemoteSessionThread(String session) {
+    public SessionThread(String session) {
         this.session = session;
     }
 
@@ -28,7 +28,7 @@ public class RemoteSessionThread extends Thread {
             client = new RctlClient(configPrefix);
             // 建立会话-应答
             SessionEstablish establish = new SessionEstablish(session);
-            Header header = new Header(id, session, "establish");
+            Header header = new Header(id, session, "session");
             Message<ReturnMessage> response = client.send(new Message<>(header, establish), ReturnMessage.class);
             logger.info(response.getBody().getMessage());
             // 等待和客户端输入

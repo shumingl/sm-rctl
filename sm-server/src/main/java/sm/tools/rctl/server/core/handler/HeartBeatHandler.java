@@ -37,7 +37,7 @@ public class HeartBeatHandler implements RctlHandler<HeartBeat> {
                 // 查询是否有客户机连接请求
                 SessionEstablish establish = SessionEstablishQueue.takeFirst(header.getId());
                 if (establish != null) {
-                    heartBeat.setAction("establish");
+                    heartBeat.setAction("session");
                     header.setSession(establish.getSession());
                 }
 

@@ -1,6 +1,5 @@
 rootProject.name = 'sm-rctl'
-include 'sm-remote'
+include 'sm-client'
 include 'sm-server'
-include 'sm-local'
 include 'sm-base'
 

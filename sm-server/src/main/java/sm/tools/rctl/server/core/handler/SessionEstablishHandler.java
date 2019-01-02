@@ -16,7 +16,7 @@ import sm.tools.rctl.base.module.net.rctl.RctlSession;
 
 import java.io.IOException;
 
-@ActionHandler("establish")
+@ActionHandler("session")
 public class SessionEstablishHandler implements RctlHandler<SessionEstablish> {
     private static final Logger logger = LoggerFactory.getLogger(SessionEstablishHandler.class);
 
@@ -35,7 +35,7 @@ public class SessionEstablishHandler implements RctlHandler<SessionEstablish> {
                 // 登记远程机Socket
                 RctlSession session = new RctlSession(null, channel);
                 SessionRouterTable.merge(session); // 更新会话信息
-                ReturnMessage retMsg = new ReturnMessage(ReturnMessage.RESULT.SUCCEED, "连接成功");
+                ReturnMessage retMsg = new ReturnMessage(ReturnMessage.RESULT.SUCCEED, "会话创建成功");
                 channel.write(new Message<>(header, retMsg));
 
             } else { // 客户机请求建立会话

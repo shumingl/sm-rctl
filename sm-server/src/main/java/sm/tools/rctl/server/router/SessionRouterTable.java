@@ -12,15 +12,19 @@ public class SessionRouterTable {
         MemoryCache.put(CACHE_KEY_ROUTER, session.getSession(), session);
     }
 
+    public static RctlSession getSession(String sessionId) {
+        return MemoryCache.get(CACHE_KEY_ROUTER, sessionId);
+    }
+
     public static RctlChannel getClient(String session) {
         if (MemoryCache.contains(CACHE_KEY_ROUTER, session))
-            return MemoryCache.<RctlSession>get(CACHE_KEY_ROUTER, session).getClient();
+            return getSession(session).getClient();
         return null;
     }
 
     public static RctlChannel getRemote(String session) {
         if (MemoryCache.contains(CACHE_KEY_ROUTER, session))
-            return MemoryCache.<RctlSession>get(CACHE_KEY_ROUTER, session).getRemote();
+            return getSession(session).getRemote();
         return null;
     }
 
@@ -30,7 +34,7 @@ public class SessionRouterTable {
 
     public static void merge(RctlSession session) {
         if (MemoryCache.contains(CACHE_KEY_ROUTER, session.getSession())) {
-            RctlSession rctlSession = MemoryCache.get(CACHE_KEY_ROUTER, session.getSession());
+            RctlSession rctlSession = getSession(session.getSession());
             if (session.getClient() != null) rctlSession.setClient(session.getClient());
             if (session.getRemote() != null) rctlSession.setRemote(session.getRemote());
         } else {

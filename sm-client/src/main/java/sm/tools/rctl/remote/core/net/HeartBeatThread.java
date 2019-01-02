@@ -14,7 +14,6 @@ import sm.tools.rctl.base.module.net.proto.body.SessionEstablish;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.utils.NetworkUtils;
 import sm.tools.rctl.base.utils.string.StringUtil;
-import sm.tools.rctl.remote.core.client.RctlClient;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -62,7 +61,7 @@ public class HeartBeatThread extends Thread {
     }
 
     private boolean register() throws Exception {
-        try (RctlClient client = new RctlClient(configPrefix)) {
+        try (RctlChannel channel = new RctlChannel(configPrefix)) {
 
             InetAddress address = NetworkUtils.getLocalHostAddress();
             String macAddress = NetworkUtils.getMacAddress(address);
@@ -71,7 +70,7 @@ public class HeartBeatThread extends Thread {
                     .withAuth(id, token)
                     .withHost(address.getHostName(), macAddress.replace("-", "").toUpperCase());
 
-            Message<ReturnMessage> returnMessage = client.send(
+            Message<ReturnMessage> returnMessage = channel.send(
                     new Message<>(new Header(id, "register"), register),
                     ReturnMessage.class);
 
