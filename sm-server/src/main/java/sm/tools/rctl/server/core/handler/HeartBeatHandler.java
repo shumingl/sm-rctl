@@ -10,7 +10,7 @@ import sm.tools.rctl.base.module.net.proto.body.HeartBeat;
 import sm.tools.rctl.base.module.net.proto.body.SessionEstablish;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.rctl.RctlHandler;
-import sm.tools.rctl.server.core.SessionEstablishQueue;
+import sm.tools.rctl.server.core.RctlSessionQueue;
 
 import java.io.IOException;
 
@@ -35,7 +35,7 @@ public class HeartBeatHandler implements RctlHandler<HeartBeat> {
                 HeartBeat heartBeat = new HeartBeat(send);
 
                 // 查询是否有客户机连接请求
-                SessionEstablish establish = SessionEstablishQueue.takeFirst(header.getId());
+                SessionEstablish establish = RctlSessionQueue.takeFirst(header.getId());
                 if (establish != null) {
                     heartBeat.setAction("session");
                     header.setSession(establish.getSession());

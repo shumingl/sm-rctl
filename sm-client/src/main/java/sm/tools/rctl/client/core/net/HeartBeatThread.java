@@ -1,4 +1,4 @@
-package sm.tools.rctl.remote.core.net;
+package sm.tools.rctl.client.core.net;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,8 +90,9 @@ public class HeartBeatThread extends Thread {
         String action = retBeat.getAction();
         // TODO 此处应该新建会话线程
         if (!StringUtil.isNOE(action)) {
-            SessionEstablish establish = new SessionEstablish(header.getSession());
-            channel.send(new Message<>(header, establish), ReturnMessage.class);
+            SessionThread sessionThread = new SessionThread(header.getSession());
+            Thread thread = new Thread(sessionThread);
+            thread.start();
         }
         // 计算下一个序号
         return (retBeat.getSeq() + 1) % RctlConstants.HEART_BEAT_MOD_MAX; // 2

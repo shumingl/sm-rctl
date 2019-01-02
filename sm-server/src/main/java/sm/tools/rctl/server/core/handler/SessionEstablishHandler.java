@@ -6,9 +6,11 @@ import sm.tools.rctl.base.module.net.annotation.ActionHandler;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
+import sm.tools.rctl.base.module.net.proto.body.ReturnMessage.RESULT;
 import sm.tools.rctl.base.module.net.proto.body.SessionEstablish;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.rctl.RctlHandler;
+import sm.tools.rctl.base.utils.IOUtils;
 import sm.tools.rctl.base.utils.string.StringUtil;
 import sm.tools.rctl.server.core.*;
 import sm.tools.rctl.server.router.SessionRouterTable;
@@ -26,7 +28,7 @@ public class SessionEstablishHandler implements RctlHandler<SessionEstablish> {
         Header header = message.getHeader();
         SessionEstablish establish = message.getBody();
 
-        long defaultTimeout = 10000L;
+        long defaultTimeout = 30000L;
 
         try {
             if (!StringUtil.isNOE(establish.getSession())) { // 远程机响应建立会话
@@ -41,7 +43,7 @@ public class SessionEstablishHandler implements RctlHandler<SessionEstablish> {
             } else { // 客户机请求建立会话
 
                 logger.info("请求会话：{}->{}", establish.getFrom(), establish.getTarget());
-                SessionEstablishQueue.add(establish.getTarget(), establish);
+                RctlSessionQueue.add(establish.getTarget(), establish);
                 logger.info("登记完成：{}->{}", establish.getFrom(), establish.getTarget());
 
                 RctlSession session = new RctlSession(channel, null);
@@ -56,12 +58,26 @@ public class SessionEstablishHandler implements RctlHandler<SessionEstablish> {
                 if (timeout <= 0) timeout = defaultTimeout;
 
                 // 远程机没有发起连接并且没有超时，就等待远程机
-                while (remote == null && System.currentTimeMillis() - start < timeout) {
+                boolean isTimeout = false;
+                while (remote == null) {
+                    isTimeout = System.currentTimeMillis() - start < timeout;
+                    if (isTimeout) break;
+
                     remote = SessionRouterTable.getRemote(sessionId);
-                    Thread.sleep(1);
+                    Thread.sleep(10);
                 }
-                establish.setSession(sessionId);
-                channel.write(new Message<>(header, establish));
+                if (!isTimeout) {
+                    logger.info("远程机已连接：" + remote.getRemoteHost());
+                    ReturnMessage returnMessage = new ReturnMessage(RESULT.SUCCEED, "创建会话成功：" + sessionId);
+                    channel.write(new Message<>(header, returnMessage));
+                } else {
+                    ReturnMessage returnMessage = new ReturnMessage(RESULT.FAILED,
+                            "创建会话失败：请求超时：timeout=" + timeout);
+                    RctlSession oldSession = SessionRouterTable.remove(sessionId);// 超时了，移除会话
+                    channel.write(new Message<>(header, returnMessage));
+                    IOUtils.closeQuietly(oldSession.getRemote()); // 关闭远程机的通信通道
+                    IOUtils.closeQuietly(oldSession.getClient()); // 客户机的通信通道，就是当前channel
+                }
 
             }
         } catch (IOException e) {

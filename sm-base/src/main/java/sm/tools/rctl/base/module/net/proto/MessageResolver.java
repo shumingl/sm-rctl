@@ -38,7 +38,6 @@ public class MessageResolver<T> {
         this.charset = charset;
         this.offset = 0;
         this.timeout = 10000;
-        resolveBytes();
     }
 
     /**
@@ -85,6 +84,7 @@ public class MessageResolver<T> {
     }
 
     public Header resolveHeader() throws Exception {
+        resolveBytes();
         header = resolvePart(Header.class);
         return header;
     }

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SessionEstablishQueue {
+public class RctlSessionQueue {
 
     private static final Map<String, List<SessionEstablish>> queue = new ConcurrentHashMap<>();
 

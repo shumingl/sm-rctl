@@ -43,6 +43,10 @@ public class RctlChannel implements Closeable {
         return socket.getOutputStream();
     }
 
+    public boolean isReadable() throws IOException {
+        return getInput().available() > 0;
+    }
+
     public InetAddress getRemoteHost() {
         return socket.getInetAddress();
     }

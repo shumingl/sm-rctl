@@ -1,4 +1,4 @@
-package sm.tools.rctl.remote.core.annotation;
+package sm.tools.rctl.client.core.annotation;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

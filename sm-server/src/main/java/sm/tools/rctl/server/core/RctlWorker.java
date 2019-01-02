@@ -46,7 +46,6 @@ public class RctlWorker extends Thread {
 
         } catch (Exception e) {
             logger.error(String.format("[%s]处理请求发生错误", thread), e);
-        } finally {
             IOUtils.closeQuietly(channel);
         }
 
