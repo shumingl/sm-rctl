@@ -11,6 +11,12 @@ public class RctlSession {
     public RctlSession() {
     }
 
+    public RctlSession(String session, RctlChannel client, RctlChannel remote) {
+        this.session = session;
+        this.client = client;
+        this.remote = remote;
+    }
+
     public RctlSession(RctlChannel client, RctlChannel remote) {
         this.session = UUID.randomUUID().toString();
         this.client = client;

@@ -10,7 +10,6 @@ import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.body.HeartBeat;
 import sm.tools.rctl.base.module.net.proto.body.HostRegister;
 import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
-import sm.tools.rctl.base.module.net.proto.body.SessionEstablish;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.utils.NetworkUtils;
 import sm.tools.rctl.base.utils.string.StringUtil;
@@ -18,8 +17,8 @@ import sm.tools.rctl.base.utils.string.StringUtil;
 import java.io.IOException;
 import java.net.InetAddress;
 
-public class HeartBeatThread extends Thread {
-    private static final Logger logger = LoggerFactory.getLogger(HeartBeatThread.class);
+public class RemoteHeartBeatThread extends Thread {
+    private static final Logger logger = LoggerFactory.getLogger(RemoteHeartBeatThread.class);
     private static final String configPrefix = "rctl.server.";
     private RctlChannel channel;
     private String host;
@@ -28,7 +27,7 @@ public class HeartBeatThread extends Thread {
     private static final String id = "0000";
     private static final String token = "shumingl";
 
-    public HeartBeatThread() {
+    public RemoteHeartBeatThread() {
         DynamicHashMap<String, Object> config = ConfigureLoader.prefixConfigMap(configPrefix);
         this.host = config.getString("host");
         this.port = config.getInteger("port");
@@ -90,8 +89,8 @@ public class HeartBeatThread extends Thread {
         String action = retBeat.getAction();
         // TODO 此处应该新建会话线程
         if (!StringUtil.isNOE(action)) {
-            SessionThread sessionThread = new SessionThread(header.getSession());
-            Thread thread = new Thread(sessionThread);
+            RemoteSessionThread remoteSessionThread = new RemoteSessionThread(header.getSession());
+            Thread thread = new Thread(remoteSessionThread);
             thread.start();
         }
         // 计算下一个序号

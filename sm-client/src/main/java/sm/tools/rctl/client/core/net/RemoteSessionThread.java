@@ -4,14 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
-import sm.tools.rctl.base.module.net.proto.body.Command;
-import sm.tools.rctl.base.module.net.proto.body.CommandResult;
-import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
-import sm.tools.rctl.base.module.net.proto.body.SessionEstablish;
+import sm.tools.rctl.base.module.net.proto.body.*;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 
-public class SessionThread extends Thread {
-    private static final Logger logger = LoggerFactory.getLogger(SessionThread.class);
+public class RemoteSessionThread extends Thread {
+    private static final Logger logger = LoggerFactory.getLogger(RemoteSessionThread.class);
     private static final String configPrefix = "rctl.server.";
     private RctlChannel channel;
     private String session;
@@ -20,7 +17,7 @@ public class SessionThread extends Thread {
     private static final String target = "0000";
     private static final String token = "shumingl";
 
-    public SessionThread(String session) {
+    public RemoteSessionThread(String session) {
         this.session = session;
     }
 
@@ -29,7 +26,7 @@ public class SessionThread extends Thread {
         try {
             channel = new RctlChannel(configPrefix);
             // 远程机向服务端，对客户机的建立会话请求进行应答，发起对应的建立会话答复
-            SessionEstablish establish = new SessionEstablish(session);
+            HostSession establish = new HostSession(session);
             Header header = new Header(id, session, "session");
             Message<ReturnMessage> response = channel.send(new Message<>(header, establish), ReturnMessage.class);
             ReturnMessage returnBody = response.getBody();

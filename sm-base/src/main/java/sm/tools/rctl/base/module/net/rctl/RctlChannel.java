@@ -110,7 +110,6 @@ public class RctlChannel implements Closeable {
         logger.trace("write   : " + new MessagePrinter(bytes).print());
         socket.getOutputStream().write(bytes);
         socket.getOutputStream().flush();
-
     }
 
     @Override

@@ -2,7 +2,7 @@ package sm.tools.rctl.base.module.net.proto.body;
 
 import sm.tools.rctl.base.module.net.annotation.FieldOrder;
 
-public class SessionEstablish {
+public class HostConnect {
     @FieldOrder(0)
     private String from;
     @FieldOrder(1)
@@ -14,14 +14,14 @@ public class SessionEstablish {
     @FieldOrder(4)
     private long timeout;
 
-    public SessionEstablish() {
+    public HostConnect() {
     }
 
-    public SessionEstablish(String session) {
+    public HostConnect(String session) {
         this.session = session;
     }
 
-    public SessionEstablish(String from, String target, String token) {
+    public HostConnect(String from, String target, String token) {
         this.from = from;
         this.target = target;
         this.token = token;

@@ -10,6 +10,10 @@ public class CommandResult {
     @FieldOrder(2)
     private String errOutput;
 
+    public boolean isSucceed() {
+        return exitCode == 0;
+    }
+
     public static CommandResult SUCCEED(String output) {
         CommandResult result = new CommandResult();
         result.setExitCode(0);
