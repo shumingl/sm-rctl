@@ -1,4 +1,4 @@
-package sm.tools.rctl.client.core.net;
+package sm.tools.rctl.client.core.rctl.remote;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +17,8 @@ import sm.tools.rctl.base.utils.string.StringUtil;
 import java.io.IOException;
 import java.net.InetAddress;
 
-public class RemoteHeartBeatThread extends Thread {
-    private static final Logger logger = LoggerFactory.getLogger(RemoteHeartBeatThread.class);
+public class HeartBeatThread extends Thread {
+    private static final Logger logger = LoggerFactory.getLogger(HeartBeatThread.class);
     private static final String configPrefix = "rctl.server.";
     private RctlChannel channel;
     private String host;
@@ -27,7 +27,7 @@ public class RemoteHeartBeatThread extends Thread {
     private static final String id = "0000";
     private static final String token = "shumingl";
 
-    public RemoteHeartBeatThread() {
+    public HeartBeatThread() {
         DynamicHashMap<String, Object> config = ConfigureLoader.prefixConfigMap(configPrefix);
         this.host = config.getString("host");
         this.port = config.getInteger("port");
@@ -89,8 +89,8 @@ public class RemoteHeartBeatThread extends Thread {
         String action = retBeat.getAction();
         // TODO 此处应该新建会话线程
         if (!StringUtil.isNOE(action)) {
-            RemoteSessionThread remoteSessionThread = new RemoteSessionThread(header.getSession());
-            Thread thread = new Thread(remoteSessionThread);
+            SessionThread sessionThread = new SessionThread(header.getSession());
+            Thread thread = new Thread(sessionThread);
             thread.start();
         }
         // 计算下一个序号

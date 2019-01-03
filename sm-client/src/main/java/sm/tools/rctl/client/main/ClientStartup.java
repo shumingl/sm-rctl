@@ -28,7 +28,6 @@ public class ClientStartup {
         LogbackConfigure.configure(ConfigureLoader.getString("logback.config"));
         // TODO client startup
 
-
         Header header = new Header("0000", "control");
         HostConnect establish = new HostConnect("0000", "0000", "shumingl");
         Message<HostConnect> establishMessage = new Message<>(header, establish);
@@ -37,14 +36,27 @@ public class ClientStartup {
 
         if (responseMessage.getBody().getResult() == ReturnMessage.RESULT.SUCCEED) {
             System.out.println("连接成功");
+
+            new Thread(() -> {
+                try {
+                    while (true) {
+                        Message<CommandResult> cmdResult = channel.receive(CommandResult.class);
+                        System.out.println(cmdResult.getBody().getStdOutput());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 try {
                     String line = scanner.next();
-                    Command cmd = new Command("~", line);
+                    Command cmd = new Command(null, line);
                     header.setSession(responseMessage.getHeader().getSession());
-                    Message<CommandResult> cmdResult = channel.send(new Message<>(header, cmd), CommandResult.class);
-                    logger.info(cmdResult.getBody().getStdOutput());
+
+                    channel.write(new Message<>(header, cmd));
+
                 } catch (Exception e) {
                     logger.warn("Send Command Exception.", e);
                 }
