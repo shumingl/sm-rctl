@@ -3,6 +3,7 @@ package sm.tools.rctl.base.module.net.proto;
 import org.apache.commons.beanutils.BeanUtils;
 import sm.tools.rctl.base.module.cache.MemoryCache;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
+import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.utils.ProtocolCache;
 import sm.tools.rctl.base.module.net.utils.ProtocolUtils;
 import sm.tools.rctl.base.utils.ByteArrayUtils;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class MessageResolver<T> {
 
-    private InputStream inputStream;
+    private RctlChannel channel;
     private Charset charset;
     private Header header;
     private T body;
@@ -25,36 +26,32 @@ public class MessageResolver<T> {
     private int length;
     private long timeout;
 
-    public MessageResolver(InputStream inputStream) throws IOException {
-        this(inputStream, RctlConstants.CHARSET_UTF8);
+    public MessageResolver(RctlChannel channel) throws IOException {
+        this(channel, RctlConstants.CHARSET_UTF8);
     }
 
-    public MessageResolver(InputStream inputStream, String charset) throws IOException {
-        this(inputStream, Charset.forName(charset));
+    public MessageResolver(RctlChannel channel, String charset) throws IOException {
+        this(channel, Charset.forName(charset));
     }
 
-    public MessageResolver(InputStream inputStream, Charset charset) throws IOException {
-        this.inputStream = inputStream;
+    public MessageResolver(RctlChannel channel, Charset charset) throws IOException {
+        this(channel.readBytes(), charset);
+    }
+
+    public MessageResolver(byte[] dataBytes) {
+        this(dataBytes, RctlConstants.CHARSET_UTF8);
+    }
+
+    public MessageResolver(byte[] dataBytes, String charset) {
+        this(dataBytes, Charset.forName(charset));
+    }
+
+    public MessageResolver(byte[] dataBytes, Charset charset) {
+        this.dataBytes = dataBytes;
         this.charset = charset;
-        this.offset = 0;
+        this.offset = RctlConstants.TOTAL_LENGTH_BYTES;
         this.timeout = 10000;
-    }
-
-    /**
-     * 解析总长度字段：前4个字节是报文总长度，不含长度自身
-     *
-     * @throws IOException IOException
-     */
-    private void resolveBytes() throws IOException {
-        byte[] lengthBytes = new byte[RctlConstants.TOTAL_LENGTH_BYTES];
-        IOUtils.readFixedBytes(inputStream, lengthBytes, timeout);
-        offset = RctlConstants.TOTAL_LENGTH_BYTES;
-
-        length = ProtocolUtils.bytes2int(lengthBytes);
-        dataBytes = new byte[length + offset];
-
-        ByteArrayUtils.fill(lengthBytes, dataBytes, 0);// 总长度
-        IOUtils.readFixedBytes(inputStream, dataBytes, offset, length, timeout); // 全部内容
+        this.length = dataBytes.length - RctlConstants.TOTAL_LENGTH_BYTES;
     }
 
     public Message<T> resolve(Class<T> bodyClass) throws IOException {
@@ -84,7 +81,6 @@ public class MessageResolver<T> {
     }
 
     public Header resolveHeader() throws Exception {
-        resolveBytes();
         header = resolvePart(Header.class);
         return header;
     }

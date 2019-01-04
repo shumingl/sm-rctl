@@ -1,4 +1,4 @@
-package sm.tools.rctl.client.core.rctl.remote;
+package sm.tools.rctl.remote.core.rctl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,24 +13,29 @@ import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.utils.NetworkUtils;
 import sm.tools.rctl.base.utils.string.StringUtil;
+import sm.tools.rctl.remote.core.callback.ProgramThread;
 
 import java.io.IOException;
 import java.net.InetAddress;
 
 public class HeartBeatThread extends Thread {
+
     private static final Logger logger = LoggerFactory.getLogger(HeartBeatThread.class);
-    private static final String configPrefix = "rctl.server.";
+    private static final String serverConfigPrefix = "rctl.server.";
+    private static final String remoteConfigPrefix = "rctl.remote.";
     private RctlChannel channel;
     private String host;
     private int port;
-
-    private static final String id = "0000";
-    private static final String token = "shumingl";
+    private String id;
+    private String token;
 
     public HeartBeatThread() {
-        DynamicHashMap<String, Object> config = ConfigureLoader.prefixConfigMap(configPrefix);
-        this.host = config.getString("host");
-        this.port = config.getInteger("port");
+        DynamicHashMap<String, Object> serverConfig = ConfigureLoader.prefixConfigMap(serverConfigPrefix);
+        this.host = serverConfig.getString("host");
+        this.port = serverConfig.getInteger("port");
+        DynamicHashMap<String, Object> remoteConfig = ConfigureLoader.prefixConfigMap(remoteConfigPrefix);
+        this.id = remoteConfig.getString("id");
+        this.token = remoteConfig.getString("token");
     }
 
     @Override
@@ -38,7 +43,7 @@ public class HeartBeatThread extends Thread {
         try {
             logger.info("server : {}:{}", host, port);
             if (register()) {// 注册
-                channel = new RctlChannel(configPrefix);
+                channel = new RctlChannel(serverConfigPrefix);
                 long seq = 0;
                 while (true) {
                     try {
@@ -60,7 +65,7 @@ public class HeartBeatThread extends Thread {
     }
 
     private boolean register() throws Exception {
-        try (RctlChannel channel = new RctlChannel(configPrefix)) {
+        try (RctlChannel channel = new RctlChannel(serverConfigPrefix)) {
 
             InetAddress address = NetworkUtils.getLocalHostAddress();
             String macAddress = NetworkUtils.getMacAddress(address);
@@ -81,17 +86,15 @@ public class HeartBeatThread extends Thread {
 
     private long heartBeat(long seq) throws Exception {
         // 发送心跳包
-        Message<HeartBeat> returnMessage = channel.send(
+        Message<HeartBeat> resp = channel.send(
                 new Message<>(new Header(id, "beat"), new HeartBeat(seq)), // 0
                 HeartBeat.class);
-        Header header = returnMessage.getHeader();
-        HeartBeat retBeat = returnMessage.getBody(); // 1
+        Header header = resp.getHeader();
+        HeartBeat retBeat = resp.getBody(); // 1
         String action = retBeat.getAction();
-        // TODO 此处应该新建会话线程
+        // 新建会话线程
         if (!StringUtil.isNOE(action)) {
-            SessionThread sessionThread = new SessionThread(header.getSession());
-            Thread thread = new Thread(sessionThread);
-            thread.start();
+            new Thread(new ProgramThread(header.getSession())).start();
         }
         // 计算下一个序号
         return (retBeat.getSeq() + 1) % RctlConstants.HEART_BEAT_MOD_MAX; // 2

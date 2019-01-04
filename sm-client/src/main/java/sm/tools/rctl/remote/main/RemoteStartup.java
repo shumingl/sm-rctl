@@ -1,8 +1,8 @@
-package sm.tools.rctl.client.main;
+package sm.tools.rctl.remote.main;
 
 import sm.tools.rctl.base.module.core.ConfigureLoader;
 import sm.tools.rctl.base.module.core.LogbackConfigure;
-import sm.tools.rctl.client.core.rctl.remote.HeartBeatThread;
+import sm.tools.rctl.remote.core.rctl.HeartBeatThread;
 
 import java.io.IOException;
 

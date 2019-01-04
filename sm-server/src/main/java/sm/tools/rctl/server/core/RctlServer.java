@@ -50,7 +50,7 @@ public class RctlServer {
         pool.shutdown();
         while (!pool.isTerminated()) {
             try {
-                Thread.sleep(10);
+                Thread.sleep(1);
             } catch (InterruptedException ignored) {
             }
         }

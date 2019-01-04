@@ -4,10 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sm.tools.rctl.base.module.core.ConfigureLoader;
 import sm.tools.rctl.base.module.lang.DynamicHashMap;
+import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.MessageBuilder;
 import sm.tools.rctl.base.module.net.proto.MessagePrinter;
 import sm.tools.rctl.base.module.net.proto.MessageResolver;
+import sm.tools.rctl.base.module.net.utils.ProtocolUtils;
+import sm.tools.rctl.base.utils.ByteArrayUtils;
+import sm.tools.rctl.base.utils.IOUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -21,6 +25,18 @@ public class RctlChannel implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(RctlChannel.class);
 
     private Socket socket;
+    private long timeout = 30000;
+    private final Object lock = new Object();
+
+    public RctlChannel(String configPrefix, long timeout) throws IOException {
+        this(configPrefix);
+        this.timeout = timeout;
+    }
+
+    public RctlChannel(Socket socket, long timeout) {
+        this(socket);
+        this.timeout = timeout;
+    }
 
     public RctlChannel(String configPrefix) throws IOException {
         DynamicHashMap<String, Object> config = ConfigureLoader.prefixConfigMap(configPrefix);
@@ -63,6 +79,40 @@ public class RctlChannel implements Closeable {
         return socket.getLocalPort();
     }
 
+    public void forward(RctlChannel target) throws IOException {
+        target.writeBytes(readBytes()); // 从当前通道读取一条消息发送到target
+    }
+
+    public void retrieve(RctlChannel target) throws IOException {
+        writeBytes(target.readBytes()); // 读取target的一条返回消息
+    }
+
+    public void writeBytes(byte[] bytes) throws IOException {
+        synchronized (lock) {
+            socket.getOutputStream().write(bytes);
+            socket.getOutputStream().flush();
+        }
+    }
+
+    /**
+     * 读取一条消息的字节数组
+     *
+     * @return 字节数组
+     * @throws IOException 流异常
+     */
+    public byte[] readBytes() throws IOException {
+        InputStream inputStream = socket.getInputStream();
+        byte[] lengthBytes = new byte[RctlConstants.TOTAL_LENGTH_BYTES];
+        IOUtils.readFixedBytes(inputStream, lengthBytes, timeout);
+
+        int length = ProtocolUtils.bytes2int(lengthBytes);
+        byte[] dataBytes = new byte[length + RctlConstants.TOTAL_LENGTH_BYTES];
+
+        ByteArrayUtils.fill(lengthBytes, dataBytes, 0);// 总长度
+        IOUtils.readFixedBytes(inputStream, dataBytes, RctlConstants.TOTAL_LENGTH_BYTES, length, timeout); // 全部内容
+        return dataBytes;
+    }
+
     /**
      * 发送并接受返回消息
      *
@@ -87,12 +137,10 @@ public class RctlChannel implements Closeable {
      * @throws IOException 流异常
      */
     public <I> Message<I> receive(Class<I> bodyClass) throws IOException {
-
-        MessageResolver<I> resolver = new MessageResolver<>(socket.getInputStream());
-        Message<I> response = resolver.resolve(bodyClass);
-        logger.trace("receive : " + new MessagePrinter(resolver.getDataBytes()).print());
-
-        return response;
+        byte[] dataBytes = readBytes();
+        if (logger.isTraceEnabled())
+            logger.trace("receive : " + new MessagePrinter(dataBytes).print());
+        return new MessageResolver<I>(dataBytes).resolve(bodyClass);
     }
 
     /**
@@ -106,10 +154,9 @@ public class RctlChannel implements Closeable {
 
         MessageBuilder<O> builder = new MessageBuilder<>(message);
         byte[] bytes = builder.build();
-
-        logger.trace("write   : " + new MessagePrinter(bytes).print());
-        socket.getOutputStream().write(bytes);
-        socket.getOutputStream().flush();
+        if (logger.isTraceEnabled())
+            logger.trace("write   : " + new MessagePrinter(bytes).print());
+        writeBytes(bytes);
     }
 
     @Override

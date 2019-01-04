@@ -34,8 +34,7 @@ public class RctlWorker extends Thread {
 
         logger.info("[{}] accept [{}:{}]", thread, clientHost, clientPort);
         try {
-            InputStream inputStream = channel.getInput();
-            MessageResolver<?> resolver = new MessageResolver(inputStream);
+            MessageResolver<?> resolver = new MessageResolver(channel);
 
             Header header = resolver.resolveHeader();
             String action = header.getAction();

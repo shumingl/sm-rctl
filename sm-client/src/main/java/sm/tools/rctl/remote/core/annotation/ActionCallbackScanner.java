@@ -1,4 +1,4 @@
-package sm.tools.rctl.client.core.annotation;
+package sm.tools.rctl.remote.core.annotation;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,17 +7,15 @@ import org.springframework.core.type.classreading.MetadataReader;
 import sm.tools.rctl.base.module.cache.MemoryCache;
 import sm.tools.rctl.base.module.net.annotation.ActionHandler;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
-import sm.tools.rctl.base.utils.ReflectUtil;
 import sm.tools.rctl.base.utils.ResourceUtil;
 import sm.tools.rctl.base.utils.string.StringUtil;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
-public class ClientHandlerScanner {
-    private static final Logger logger = LoggerFactory.getLogger(ClientHandlerScanner.class);
+public class ActionCallbackScanner {
+    private static final Logger logger = LoggerFactory.getLogger(ActionCallbackScanner.class);
 
-    public ClientHandlerScanner(String... packages) {
+    public ActionCallbackScanner(String... packages) {
         scan(packages);
     }
 
@@ -41,16 +39,13 @@ public class ClientHandlerScanner {
                 ClassMetadata classMetadata = metadata.getClassMetadata();
                 String className = classMetadata.getClassName();
                 Class<?> clazz = Class.forName(className);
-                List<Method> methods = ReflectUtil.getAllMethods(clazz);
-                if (methods != null && methods.size() > 0) {
-                    for (Method method : methods) {
-                        ActionHandler handler = method.getAnnotation(ActionHandler.class);
-                        if (handler != null) {
-                            String cacheKey = RctlConstants.CACHE_KEY_CLIENT_HANDLER;
-                            logger.info("add cache : {}/{} = {}", cacheKey, handler.value(), method);
-                            MemoryCache.put(cacheKey, handler.value(), method);
-                        }
-                    }
+
+                ActionHandler[] actionHandlers = clazz.getAnnotationsByType(ActionHandler.class);
+                if (actionHandlers != null && actionHandlers.length > 0) {
+                    ActionHandler handler = actionHandlers[0];
+                    String cacheKey = RctlConstants.CACHE_KEY_ACTION_CALLBACK;
+                    logger.info("add cache : {}/{} = {}", cacheKey, handler.value(), clazz);
+                    MemoryCache.put(cacheKey, handler.value(), clazz);
                 }
             }
         } catch (Exception e) {

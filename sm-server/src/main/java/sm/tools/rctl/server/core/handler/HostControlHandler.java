@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import sm.tools.rctl.base.module.net.annotation.ActionHandler;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
-import sm.tools.rctl.base.module.net.proto.body.Command;
 import sm.tools.rctl.base.module.net.proto.body.CommandResult;
 import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
 import sm.tools.rctl.base.module.net.proto.body.ReturnMessage.RESULT;
@@ -57,10 +56,10 @@ public class HostControlHandler implements RctlHandler<HostConnect> {
                 if (isTimeout) break;
 
                 remote = SessionRouterTable.getRemote(sessionId);
-                Thread.sleep(10);
+                Thread.sleep(1);
             }
             if (!isTimeout) {
-                logger.info("[CLIENT]远程机已连接：" + remote.getRemoteHost() + "，SESSION：" + sessionId);
+                logger.info("[CLIENT]连接远程机：" + remote.getRemoteHost() + "，SESSION：" + sessionId);
                 ReturnMessage returnMessage = new ReturnMessage(RESULT.SUCCEED, "[CLIENT]会话创建成功：" + sessionId);
                 channel.write(new Message<>(header, returnMessage));
                 bridging(sessionId);
@@ -90,18 +89,31 @@ public class HostControlHandler implements RctlHandler<HostConnect> {
     private void bridging(String sessionId) throws IOException {
         RctlChannel clientChannel = SessionRouterTable.getClient(sessionId);
         RctlChannel remoteChannel = SessionRouterTable.getRemote(sessionId);
+        if (clientChannel == null) throw new IOException("客户机会话通道异常");
+        if (remoteChannel == null) throw new IOException("远程机会话通道异常");
 
-        if (clientChannel == null)
-            throw new IOException("客户机会话通道异常");
-        if (remoteChannel == null)
-            throw new IOException("远程机会话通道异常");
-
-        while (true) {
-            try {
-                clientChannel.write(remoteChannel.send(clientChannel.receive(Command.class), CommandResult.class));
-            } catch (Exception e) {
-                logger.warn("会话异常", e);
+        new Thread(() -> {
+            Thread.currentThread().setName("bridge-forward");
+            while (true) {
+                try {
+                    clientChannel.forward(remoteChannel);
+                } catch (Exception e) {
+                    logger.warn("转发异常", e);
+                    break;
+                }
             }
-        }
+        }).start();
+
+        new Thread(() -> {
+            Thread.currentThread().setName("bridge-retrieve");
+            while (true) {
+                try {
+                    clientChannel.retrieve(remoteChannel);
+                } catch (Exception e) {
+                    logger.warn("收取异常", e);
+                    break;
+                }
+            }
+        }).start();
     }
 }

@@ -11,6 +11,7 @@ import sm.tools.rctl.base.module.net.proto.body.CommandResult;
 import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
 import sm.tools.rctl.base.module.net.proto.body.HostConnect;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
+import sm.tools.rctl.base.utils.string.StringUtil;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -26,43 +27,42 @@ public class ClientStartup {
     public static void startup() throws IOException {
         ConfigureLoader.loadConfig("config/application.properties");
         LogbackConfigure.configure(ConfigureLoader.getString("logback.config"));
-        // TODO client startup
+
+        RctlChannel channel = new RctlChannel("rctl.server.");
 
         Header header = new Header("0000", "control");
         HostConnect establish = new HostConnect("0000", "0000", "shumingl");
         Message<HostConnect> establishMessage = new Message<>(header, establish);
-        RctlChannel channel = new RctlChannel("rctl.server.");
-        Message<ReturnMessage> responseMessage = channel.send(establishMessage, ReturnMessage.class);
+        Message<ReturnMessage> resp = channel.send(establishMessage, ReturnMessage.class);
 
-        if (responseMessage.getBody().getResult() == ReturnMessage.RESULT.SUCCEED) {
-            System.out.println("连接成功");
+        if (resp.getBody().getResult() == ReturnMessage.RESULT.SUCCEED) {
 
             new Thread(() -> {
+                Thread.currentThread().setName("CommandResultReader");
                 try {
                     while (true) {
                         Message<CommandResult> cmdResult = channel.receive(CommandResult.class);
-                        System.out.println(cmdResult.getBody().getStdOutput());
+                        System.out.print(cmdResult.getBody().getStdOutput());
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("读取命令结果异常", e);
                 }
             }).start();
 
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 try {
-                    String line = scanner.next();
-                    Command cmd = new Command(null, line);
-                    header.setSession(responseMessage.getHeader().getSession());
-
-                    channel.write(new Message<>(header, cmd));
+                    String line = scanner.nextLine();
+                    channel.write(new Message<>(
+                            header.withSession(resp.getHeader().getSession()),
+                            new Command(line)));
 
                 } catch (Exception e) {
                     logger.warn("Send Command Exception.", e);
                 }
             }
         } else {
-            logger.error(responseMessage.getBody().getMessage());
+            logger.error(resp.getBody().getMessage());
         }
     }
 }
