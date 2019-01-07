@@ -22,7 +22,11 @@ public class ProtocolCache {
         List<Field> fields = ProtocolUtils.getOrderedFields(objectClass);
         if (fields != null) {
             for (Field field : fields) {
-                String getAction = Boolean.class.isAssignableFrom(field.getType()) ? "is" : "get";
+                String getAction =
+                        Boolean.class.isAssignableFrom(field.getType()) ||
+                                boolean.class.isAssignableFrom(field.getType())
+                                ? "is" : "get";
+
                 String getName = ReflectUtil.genMethod(getAction, field.getName());
                 String setName = ReflectUtil.genMethod("set", field.getName());
                 classGetter.put(field, ReflectUtil.getMethodByName(objectClass, getName));

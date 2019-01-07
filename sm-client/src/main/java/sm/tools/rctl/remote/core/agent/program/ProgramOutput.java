@@ -12,9 +12,9 @@ import sm.tools.rctl.base.utils.IOUtils;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CmdResultWriter extends Thread {
+public class ProgramOutput extends Thread {
 
-    private static final Logger logger = LoggerFactory.getLogger(CmdResultWriter.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProgramOutput.class);
     private static final String remoteConfigPrefix = "rctl.remote.";
     private static final AtomicInteger index = new AtomicInteger(0);
 
@@ -23,7 +23,7 @@ public class CmdResultWriter extends Thread {
     private String session;
     private RctlChannel channel;
 
-    public CmdResultWriter(InputStream inputStream, RctlChannel channel, String session) {
+    public ProgramOutput(InputStream inputStream, RctlChannel channel, String session) {
         this.inputStream = inputStream;
         this.session = session;
         this.channel = channel;

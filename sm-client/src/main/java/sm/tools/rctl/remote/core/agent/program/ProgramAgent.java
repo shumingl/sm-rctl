@@ -8,7 +8,7 @@ import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.body.Command;
 import sm.tools.rctl.base.module.net.proto.body.CommandResult;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
-import sm.tools.rctl.base.utils.string.StringUtil;
+import sm.tools.rctl.base.utils.IOUtils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -32,9 +32,10 @@ public class ProgramAgent {
     public void exec() throws IOException {
 
         Process process = Runtime.getRuntime().exec(program);
-        new Thread(new CmdResultWriter(process.getInputStream(), channel, session)).start();
-        new Thread(new CmdResultWriter(process.getErrorStream(), channel, session)).start();
+        new Thread(new ProgramOutput(process.getInputStream(), channel, session)).start();
+        new Thread(new ProgramOutput(process.getErrorStream(), channel, session)).start();
         Header header = null;
+        String msg;
 
         while (true) {
             try {
@@ -50,12 +51,21 @@ public class ProgramAgent {
                 writer.newLine();
                 writer.flush();
 
-            } catch (IOException e) {
-                channel.write(new Message<>(header, CommandResult.FAILED(e.toString())));
             } catch (Exception e) {
                 logger.error("执行命令异常", e);
+                channel.write(new Message<>(header, CommandResult.FAILED(e.getMessage())));
+                msg = e.toString();
+                break;
             }
         }
 
+        try {
+            int exitCode = process.waitFor();
+            channel.write(new Message<>(header,
+                    new CommandResult(exitCode, "程序已退出[" + msg + "]退出码[" + exitCode + "]", true)));
+            IOUtils.closeQuietly(channel);
+        } catch (InterruptedException e) {
+            logger.error("程序中断异常", e);
+        }
     }
 }

@@ -19,6 +19,7 @@ import java.util.Scanner;
 public class ClientStartup {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientStartup.class);
+    private static volatile boolean terminated = false;
 
     public static void main(String[] args) throws IOException {
         startup();
@@ -40,27 +41,33 @@ public class ClientStartup {
             new Thread(() -> {
                 Thread.currentThread().setName("CommandResultReader");
                 try {
-                    while (true) {
+                    while (!terminated) {
                         Message<CommandResult> cmdResult = channel.receive(CommandResult.class);
                         System.out.print(cmdResult.getBody().getStdOutput());
+                        if (cmdResult.getBody().isTerminated()) {
+                            terminated = true;
+                            System.out.println();
+                        }
                     }
                 } catch (Exception e) {
                     logger.error("读取命令结果异常", e);
                 }
+                System.out.println("通道已经关闭。");
             }).start();
 
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 try {
+                    if (terminated) break;
                     String line = scanner.nextLine();
                     channel.write(new Message<>(
                             header.withSession(resp.getHeader().getSession()),
                             new Command(line)));
-
                 } catch (Exception e) {
                     logger.warn("Send Command Exception.", e);
                 }
             }
+            System.out.println("程序执行结束。");
         } else {
             logger.error(resp.getBody().getMessage());
         }
