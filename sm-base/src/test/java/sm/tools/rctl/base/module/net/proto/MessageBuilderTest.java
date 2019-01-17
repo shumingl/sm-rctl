@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import sm.tools.rctl.base.module.core.ConfigureLoader;
 import sm.tools.rctl.base.module.core.LogbackConfigure;
+import sm.tools.rctl.base.module.net.constant.RctlActions;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
 
 import java.util.UUID;
@@ -22,7 +23,7 @@ public class MessageBuilderTest {
         Header header = new Header()
                 .withId("0000")
                 .withSession(uuid)
-                .withAction("beat");
+                .withAction(RctlActions.REMOTE_HEARTBEAT);
 
         CommandBody commandBody = new CommandBody("%userprofile%", "cmd /c start /b cmd.exe");
         Message<CommandBody> msg = new Message<>(header, commandBody);

@@ -3,71 +3,71 @@ package sm.tools.rctl.server.core.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sm.tools.rctl.base.module.net.annotation.ActionHandler;
+import sm.tools.rctl.base.module.net.constant.RctlActions;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
-import sm.tools.rctl.base.module.net.proto.body.CommandResult;
-import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
-import sm.tools.rctl.base.module.net.proto.body.ReturnMessage.RESULT;
+import sm.tools.rctl.base.module.net.proto.body.RespMsg;
+import sm.tools.rctl.base.module.net.proto.body.RespMsg.RESULT;
 import sm.tools.rctl.base.module.net.proto.body.HostConnect;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.rctl.RctlHandler;
 import sm.tools.rctl.base.module.net.rctl.RctlSession;
 import sm.tools.rctl.base.utils.IOUtils;
-import sm.tools.rctl.server.core.RctlConnectQueue;
-import sm.tools.rctl.server.router.SessionRouterTable;
+import sm.tools.rctl.server.core.RctlRequestQueue;
+import sm.tools.rctl.server.core.router.SessionRouterTable;
 
 import java.io.IOException;
 
-@ActionHandler("control")
-public class HostControlHandler implements RctlHandler<HostConnect> {
-    private static final Logger logger = LoggerFactory.getLogger(HostControlHandler.class);
+@ActionHandler(RctlActions.CLIENT_CONNECT)
+public class HostConnectHandler implements RctlHandler<HostConnect> {
+    private static final Logger logger = LoggerFactory.getLogger(HostConnectHandler.class);
+    private static final long DEFAULT_TIMEOUT = 30000L;
 
     @Override
     public void handle(RctlChannel channel, Message<HostConnect> message) throws IOException {
 
         Header header = message.getHeader();
-        HostConnect connect = message.getBody();
-
-        long defaultTimeout = 30000L;
+        HostConnect request = message.getBody();
 
         try {
             // 客户机请求建立会话
             RctlSession session = new RctlSession(channel, null);
             String sessionId = session.getSession();
+            String from = request.getFrom();
+            String target = request.getTarget();
 
-            logger.info("请求会话：[{}]{}->{}", sessionId, connect.getFrom(), connect.getTarget());
-            connect.setSession(session.getSession());
-            RctlConnectQueue.add(connect.getTarget(), connect);
-            logger.info("登记完成：[{}]{}->{}", sessionId, connect.getFrom(), connect.getTarget());
+            logger.info("登记会话：[{}]{}->{}", sessionId, from, target);
+            RctlRequestQueue.register(target, request.withSession(sessionId));
 
-            SessionRouterTable.put(session);
+            SessionRouterTable.put(session); // 登记客户机
 
-            // 等待远程机Socket
-            RctlChannel remote = null;
+            long timeout = request.getTimeout();
+            if (timeout <= 0) timeout = DEFAULT_TIMEOUT;
 
-            long start = System.currentTimeMillis();
-            long timeout = connect.getTimeout();
-            if (timeout <= 0) timeout = defaultTimeout;
-
-            // 远程机没有发起连接并且没有超时，就等待远程机
             boolean isTimeout = false;
-            while (remote == null) {
+            long start = System.currentTimeMillis();
+            // 等待远程机
+            while (!SessionRouterTable.hasRemote(sessionId)) {
                 isTimeout = System.currentTimeMillis() - start > timeout;
                 if (isTimeout) break;
-
-                remote = SessionRouterTable.getRemote(sessionId);
                 Thread.sleep(1);
             }
+
             if (!isTimeout) {
-                logger.info("[CLIENT]连接远程机：" + remote.getRemoteHost() + "，SESSION：" + sessionId);
-                ReturnMessage returnMessage = new ReturnMessage(RESULT.SUCCEED, "[CLIENT]会话创建成功：" + sessionId);
-                channel.write(new Message<>(header, returnMessage));
-                bridging(sessionId);
+                RctlChannel remote = SessionRouterTable.getRemote(sessionId);
+                if (remote == null) {
+                    throw new IOException("[CLIENT]创建会话失败：获取远程通道失败");
+                } else {
+                    logger.info("[CLIENT]连接远程机：" + remote.getRemoteHost() + "，SESSION：" + sessionId);
+                    RespMsg respMsg = new RespMsg(RESULT.SUCCEED, "[CLIENT]会话创建成功：" + sessionId);
+                    channel.write(new Message<>(header, respMsg));
+                    bridging(sessionId);
+                }
+
             } else {
-                ReturnMessage returnMessage = new ReturnMessage(RESULT.FAILED,
-                        "[CLIENT]创建会话失败：请求超时 timeout=" + timeout);
+                channel.write(new Message<>(header,
+                        new RespMsg(RESULT.FAILED, "[CLIENT]创建会话失败：请求超时 timeout=" + timeout)));
                 RctlSession oldSession = SessionRouterTable.remove(sessionId);// 超时了，移除会话
-                channel.write(new Message<>(header, returnMessage));
                 IOUtils.closeQuietly(oldSession.getRemote()); // 关闭远程机的通信通道
                 IOUtils.closeQuietly(oldSession.getClient()); // 客户机的通信通道，就是当前channel
             }

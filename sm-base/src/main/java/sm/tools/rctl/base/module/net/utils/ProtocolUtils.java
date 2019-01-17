@@ -2,8 +2,7 @@ package sm.tools.rctl.base.module.net.utils;
 
 import sm.tools.rctl.base.module.net.annotation.FieldOrder;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
-import sm.tools.rctl.base.module.net.proto.Header;
-import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
+import sm.tools.rctl.base.module.net.proto.body.RespMsg;
 import sm.tools.rctl.base.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -56,12 +55,8 @@ public class ProtocolUtils {
         Map<String, Integer> orderMap = new HashMap<>();
         for (Field field : fields) {
             FieldOrder[] fieldOrders = field.getAnnotationsByType(FieldOrder.class);
-            if (fieldOrders == null || fieldOrders.length == 0) {
-                throw new RuntimeException("字段需要指定FieldOrder排序：Class: " +
-                        objectClass.getTypeName() + ", Field: " + field.getName());
-            } else {
+            if (fieldOrders != null && fieldOrders.length > 0) // 忽略没有注解的字段
                 orderMap.put(field.getName(), fieldOrders[0].value());
-            }
         }
         fields.sort(Comparator.comparingInt(f -> orderMap.get(f.getName())));
         return fields;
@@ -72,9 +67,9 @@ public class ProtocolUtils {
         byte[] bytes = int2bytes(value, RctlConstants.TOTAL_LENGTH_BYTES);
         System.out.println(bytes2int(bytes));
 
-        System.out.println(ProtocolCache.get(ReturnMessage.class));
-        if (ProtocolCache.exists(ReturnMessage.class))
-            System.out.println(ProtocolCache.get(ReturnMessage.class));
+        System.out.println(ProtocolCache.get(RespMsg.class));
+        if (ProtocolCache.exists(RespMsg.class))
+            System.out.println(ProtocolCache.get(RespMsg.class));
         else
             System.out.println("not exists.");
     }

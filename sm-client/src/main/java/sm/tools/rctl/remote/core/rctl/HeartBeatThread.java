@@ -4,12 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sm.tools.rctl.base.module.core.ConfigureLoader;
 import sm.tools.rctl.base.module.lang.DynamicHashMap;
+import sm.tools.rctl.base.module.net.constant.RctlActions;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.body.HeartBeat;
 import sm.tools.rctl.base.module.net.proto.body.HostRegister;
-import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
+import sm.tools.rctl.base.module.net.proto.body.RespMsg;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.utils.NetworkUtils;
 import sm.tools.rctl.base.utils.string.StringUtil;
@@ -28,6 +29,7 @@ public class HeartBeatThread extends Thread {
     private int port;
     private String id;
     private String token;
+    private String nick;
 
     public HeartBeatThread() {
         DynamicHashMap<String, Object> serverConfig = ConfigureLoader.prefixConfigMap(serverConfigPrefix);
@@ -36,6 +38,7 @@ public class HeartBeatThread extends Thread {
         DynamicHashMap<String, Object> remoteConfig = ConfigureLoader.prefixConfigMap(remoteConfigPrefix);
         this.id = remoteConfig.getString("id");
         this.token = remoteConfig.getString("token");
+        this.nick = remoteConfig.getString("nick");
     }
 
     @Override
@@ -47,9 +50,8 @@ public class HeartBeatThread extends Thread {
                 long seq = 0;
                 while (true) {
                     try {
-                        logger.info("Heart Beat SEQ: " + seq);
                         seq = heartBeat(seq);
-                        Thread.sleep(1000);
+                        Thread.sleep(500);
                     } catch (IOException e) {
                         throw e;
                     } catch (Exception e) {
@@ -71,23 +73,24 @@ public class HeartBeatThread extends Thread {
             String macAddress = NetworkUtils.getMacAddress(address);
 
             HostRegister register = new HostRegister()
-                    .withAuth(id, token)
+                    .withAuth(id, token, nick)
                     .withHost(address.getHostName(), macAddress.replace("-", "").toUpperCase());
 
-            Message<ReturnMessage> returnMessage = channel.send(
-                    new Message<>(new Header(id, "register"), register),
-                    ReturnMessage.class);
+            Message<HostRegister> returnMessage = channel.send(
+                    new Message<>(new Header(id, RctlActions.REMOTE_REGISTER), register),
+                    HostRegister.class);
 
-            ReturnMessage retMsg = returnMessage.getBody();
-            logger.info("注册[{}]：{}", id, retMsg.getMessage());
-            return retMsg.getResult() == ReturnMessage.RESULT.SUCCEED;
+            HostRegister host = returnMessage.getBody();
+            // TODO 保存注册信息到本地
+            logger.info("注册完成：" + host);
+            return host != null && host.getId() != null;
         }
     }
 
     private long heartBeat(long seq) throws Exception {
         // 发送心跳包
         Message<HeartBeat> resp = channel.send(
-                new Message<>(new Header(id, "beat"), new HeartBeat(seq)), // 0
+                new Message<>(new Header(id, RctlActions.REMOTE_HEARTBEAT), new HeartBeat(seq)), // 0
                 HeartBeat.class);
         Header header = resp.getHeader();
         HeartBeat retBeat = resp.getBody(); // 1
@@ -97,7 +100,7 @@ public class HeartBeatThread extends Thread {
             new Thread(new ProgramThread(header.getSession())).start();
         }
         // 计算下一个序号
-        return (retBeat.getSeq() + 1) % RctlConstants.HEART_BEAT_MOD_MAX; // 2
+        return (retBeat.getSeq() + 1) % RctlConstants.HEART_BEAT_LOOP_MAX; // 2
     }
 
 }

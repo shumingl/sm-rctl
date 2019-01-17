@@ -16,6 +16,6 @@ public class RctlConstants {
     public static final String CACHE_KEY_SERVER_HANDLER = "server.core.handlers";
     public static final String CACHE_KEY_ACTION_CALLBACK = "client.core.callback";
 
-    public static final long HEART_BEAT_MOD_MAX = 1024L;
+    public static final long HEART_BEAT_LOOP_MAX = 1024L;
 
 }

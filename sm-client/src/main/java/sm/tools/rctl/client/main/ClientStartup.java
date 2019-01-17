@@ -4,14 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sm.tools.rctl.base.module.core.ConfigureLoader;
 import sm.tools.rctl.base.module.core.LogbackConfigure;
+import sm.tools.rctl.base.module.net.constant.RctlActions;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.body.Command;
 import sm.tools.rctl.base.module.net.proto.body.CommandResult;
-import sm.tools.rctl.base.module.net.proto.body.ReturnMessage;
+import sm.tools.rctl.base.module.net.proto.body.RespMsg;
 import sm.tools.rctl.base.module.net.proto.body.HostConnect;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
-import sm.tools.rctl.base.utils.string.StringUtil;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -31,12 +31,12 @@ public class ClientStartup {
 
         RctlChannel channel = new RctlChannel("rctl.server.");
 
-        Header header = new Header("0000", "control");
-        HostConnect establish = new HostConnect("0000", "0000", "shumingl");
+        Header header = new Header("0000", RctlActions.CLIENT_CONNECT);
+        HostConnect establish = new HostConnect("0000", "0000", "123456");
         Message<HostConnect> establishMessage = new Message<>(header, establish);
-        Message<ReturnMessage> resp = channel.send(establishMessage, ReturnMessage.class);
+        Message<RespMsg> resp = channel.send(establishMessage, RespMsg.class);
 
-        if (resp.getBody().getResult() == ReturnMessage.RESULT.SUCCEED) {
+        if (resp.getBody().getResult() == RespMsg.RESULT.SUCCEED) {
 
             new Thread(() -> {
                 Thread.currentThread().setName("CommandResultReader");

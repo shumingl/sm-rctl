@@ -1,8 +1,10 @@
 package sm.tools.rctl.base.module.net.proto.body;
 
 import sm.tools.rctl.base.module.net.annotation.FieldOrder;
+import sm.tools.rctl.base.module.net.annotation.RctlEntity;
 
-public class ReturnMessage {
+@RctlEntity(7)
+public class RespMsg {
 
     public static class RESULT {
         public static final int SUCCEED = 0;
@@ -15,10 +17,10 @@ public class ReturnMessage {
     @FieldOrder(1)
     private String message;
 
-    public ReturnMessage() {
+    public RespMsg() {
     }
 
-    public ReturnMessage(int result, String message) {
+    public RespMsg(int result, String message) {
         this.result = result;
         this.message = message;
     }

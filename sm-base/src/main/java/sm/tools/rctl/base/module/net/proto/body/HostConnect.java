@@ -1,7 +1,9 @@
 package sm.tools.rctl.base.module.net.proto.body;
 
 import sm.tools.rctl.base.module.net.annotation.FieldOrder;
+import sm.tools.rctl.base.module.net.annotation.RctlEntity;
 
+@RctlEntity(4)
 public class HostConnect {
     @FieldOrder(0)
     private String from;
@@ -25,6 +27,23 @@ public class HostConnect {
         this.from = from;
         this.target = target;
         this.token = token;
+    }
+
+    public HostConnect withSession(String session) {
+        this.session = session;
+        return this;
+    }
+
+    public HostConnect withConnect(String from, String target, String token) {
+        this.from = from;
+        this.target = target;
+        this.token = token;
+        return this;
+    }
+
+    public HostConnect withTimeout(long timeout) {
+        this.timeout = timeout;
+        return this;
     }
 
     public String getFrom() {

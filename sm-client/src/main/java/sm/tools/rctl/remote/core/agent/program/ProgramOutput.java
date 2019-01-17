@@ -3,6 +3,7 @@ package sm.tools.rctl.remote.core.agent.program;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sm.tools.rctl.base.module.core.ConfigureLoader;
+import sm.tools.rctl.base.module.net.constant.RctlActions;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
 import sm.tools.rctl.base.module.net.proto.body.CommandResult;
@@ -42,7 +43,7 @@ public class ProgramOutput extends Thread {
                 byte[] buffer = new byte[length];
                 int ret = inputStream.read(buffer);
                 String message = new String(buffer, 0, ret, ProgramAgent.DEFAULT_CHARSET);
-                Header header = new Header(id, session, "session");
+                Header header = new Header(id, session, RctlActions.CLIENT_SESSION);
                 channel.write(new Message<>(header, CommandResult.SUCCEED(message)));
             }
         } catch (Exception e) {

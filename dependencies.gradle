@@ -119,6 +119,7 @@ ext.libs = [
         "ignite-indexing"         : "org.apache.ignite:ignite-indexing:${ver.ignite}",
         "ignite-spring"           : "org.apache.ignite:ignite-spring:${ver.ignite}",
         "fest-reflect"            : "org.easytesting:fest-reflect:1.4.1",
-        "dropwizard-core"         : "io.dropwizard:dropwizard-core:1.3.7"
+        "dropwizard-core"         : "io.dropwizard:dropwizard-core:1.3.7",
 
+        "sqlite-jdbc"             : "org.xerial:sqlite-jdbc:3.25.2"
 ]

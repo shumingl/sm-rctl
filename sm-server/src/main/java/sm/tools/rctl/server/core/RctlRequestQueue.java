@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RctlConnectQueue {
+public class RctlRequestQueue {
 
     private static final Map<String, List<HostConnect>> queue = new ConcurrentHashMap<>();
 
@@ -15,7 +15,7 @@ public class RctlConnectQueue {
         return queue.computeIfAbsent(target, value -> new LinkedList<>());
     }
 
-    public static void add(String target, HostConnect hostConnect) {
+    public static void register(String target, HostConnect hostConnect) {
         getOrCreate(target).add(hostConnect);
     }
 

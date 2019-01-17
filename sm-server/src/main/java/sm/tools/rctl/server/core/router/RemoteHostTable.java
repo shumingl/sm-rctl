@@ -1,4 +1,4 @@
-package sm.tools.rctl.server.router;
+package sm.tools.rctl.server.core.router;
 
 import sm.tools.rctl.base.module.cache.MemoryCache;
 import sm.tools.rctl.base.module.net.rctl.RctlHost;

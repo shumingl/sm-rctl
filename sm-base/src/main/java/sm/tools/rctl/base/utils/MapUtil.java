@@ -2,10 +2,39 @@ package sm.tools.rctl.base.utils;
 
 import sm.tools.rctl.base.utils.string.StringUtil;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 @SuppressWarnings("unchecked")
 public class MapUtil {
+
+    /**
+     * 将对象根据字段名转换成Map
+     *
+     * @param object 对象
+     * @return
+     */
+    public static Map<String, Object> object2map(Object object) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        if (object != null) {
+            List<Field> fields = ReflectUtil.getAllFields(object.getClass());
+            for (Field field : fields) {
+                String act = boolean.class.isAssignableFrom(field.getType()) ||
+                        Boolean.class.isAssignableFrom(field.getType()) ? "is" : "get";
+                String methodName = ReflectUtil.genMethod(act, field.getName());
+                Method getMethod = ReflectUtil.getMethodByName(object.getClass(), methodName);
+                if (getMethod != null) {
+                    try {
+                        result.put(field.getName(), getMethod.invoke(object));
+                    } catch (IllegalAccessException | InvocationTargetException ignored) {
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     public static <K, V> Map<K, V> asMap(Object... parameterPairs) {
         Map<K, V> map = new HashMap<>();

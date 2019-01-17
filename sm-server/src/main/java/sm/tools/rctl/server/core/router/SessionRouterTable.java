@@ -1,4 +1,4 @@
-package sm.tools.rctl.server.router;
+package sm.tools.rctl.server.core.router;
 
 import sm.tools.rctl.base.module.cache.MemoryCache;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
@@ -14,6 +14,18 @@ public class SessionRouterTable {
 
     public static RctlSession getSession(String sessionId) {
         return MemoryCache.get(CACHE_KEY_ROUTER, sessionId);
+    }
+
+    public static boolean hasClient(String session) {
+        if (MemoryCache.contains(CACHE_KEY_ROUTER, session))
+            return getSession(session).getClient() != null;
+        return false;
+    }
+
+    public static boolean hasRemote(String session) {
+        if (MemoryCache.contains(CACHE_KEY_ROUTER, session))
+            return getSession(session).getRemote() != null;
+        return false;
     }
 
     public static RctlChannel getClient(String session) {

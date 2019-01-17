@@ -1,6 +1,8 @@
 dependencies {
     compile(
-            project(":sm-base")
+            project(":sm-base"),
+            libs."sqlite-jdbc",
+            libs."commons-lang3"
     )
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

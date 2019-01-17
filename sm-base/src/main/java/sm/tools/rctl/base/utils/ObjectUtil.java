@@ -85,6 +85,13 @@ public class ObjectUtil {
         return new BigDecimal(String.valueOf(object));
     }
 
+    public static Number getNumber(Object object) {
+        if (object == null) return null;
+        if (object instanceof Number)
+            return (Number) object;
+        return Double.parseDouble(String.valueOf(object));
+    }
+
     public static Boolean getBoolean(Object object) {
         if (object == null) return null;
         if (object instanceof Boolean)

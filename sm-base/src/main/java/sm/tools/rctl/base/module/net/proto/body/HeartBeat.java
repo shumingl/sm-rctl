@@ -1,7 +1,9 @@
 package sm.tools.rctl.base.module.net.proto.body;
 
 import sm.tools.rctl.base.module.net.annotation.FieldOrder;
+import sm.tools.rctl.base.module.net.annotation.RctlEntity;
 
+@RctlEntity(2)
 public class HeartBeat {
     @FieldOrder(0)
     private long seq;

@@ -3,6 +3,7 @@ package sm.tools.rctl.server.core.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sm.tools.rctl.base.module.net.annotation.ActionHandler;
+import sm.tools.rctl.base.module.net.constant.RctlActions;
 import sm.tools.rctl.base.module.net.constant.RctlConstants;
 import sm.tools.rctl.base.module.net.proto.Header;
 import sm.tools.rctl.base.module.net.proto.Message;
@@ -10,11 +11,11 @@ import sm.tools.rctl.base.module.net.proto.body.HeartBeat;
 import sm.tools.rctl.base.module.net.proto.body.HostConnect;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.rctl.RctlHandler;
-import sm.tools.rctl.server.core.RctlConnectQueue;
+import sm.tools.rctl.server.core.RctlRequestQueue;
 
 import java.io.IOException;
 
-@ActionHandler("beat")
+@ActionHandler(RctlActions.REMOTE_HEARTBEAT)
 public class HeartBeatHandler implements RctlHandler<HeartBeat> {
     private static final Logger logger = LoggerFactory.getLogger(HeartBeatHandler.class);
 
@@ -30,14 +31,14 @@ public class HeartBeatHandler implements RctlHandler<HeartBeat> {
 
                 // 序号循环递增
                 long receive = beat.getSeq();
-                long send = (receive + 1) % RctlConstants.HEART_BEAT_MOD_MAX;
-                long expect = (send + 1) % RctlConstants.HEART_BEAT_MOD_MAX;
+                long send = (receive + 1) % RctlConstants.HEART_BEAT_LOOP_MAX;
+                long expect = (send + 1) % RctlConstants.HEART_BEAT_LOOP_MAX;
                 HeartBeat heartBeat = new HeartBeat(send);
 
                 // 查询是否有客户机连接请求
-                HostConnect establish = RctlConnectQueue.takeFirst(header.getId());
+                HostConnect establish = RctlRequestQueue.takeFirst(header.getId());
                 if (establish != null) {
-                    heartBeat.setAction("session");
+                    heartBeat.setAction(RctlActions.CLIENT_SESSION);
                     header.setSession(establish.getSession());
                 }
 
