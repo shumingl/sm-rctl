@@ -27,6 +27,7 @@ public class RctlChannel implements Closeable {
     private Socket socket;
     private long timeout = 30000;
     private final Object lock = new Object();
+    private boolean closed;
 
     public RctlChannel(String configPrefix, long timeout) throws IOException {
         this(configPrefix);
@@ -41,10 +42,12 @@ public class RctlChannel implements Closeable {
     public RctlChannel(String configPrefix) throws IOException {
         DynamicHashMap<String, Object> config = ConfigureLoader.prefixConfigMap(configPrefix);
         this.socket = new Socket(config.getString("host"), config.getInteger("port"));
+        closed = false;
     }
 
     public RctlChannel(Socket socket) {
         this.socket = socket;
+        closed = false;
     }
 
     public Socket getSocket() {
@@ -80,11 +83,11 @@ public class RctlChannel implements Closeable {
     }
 
     public void forward(RctlChannel target) throws IOException {
-        target.writeBytes(readBytes()); // 从当前通道读取一条消息发送到target
+        target.writeBytes(readBytes()); // 消息转发到target（source->target）
     }
 
-    public void retrieve(RctlChannel target) throws IOException {
-        writeBytes(target.readBytes()); // 读取target的一条返回消息
+    public void receive(RctlChannel target) throws IOException {
+        writeBytes(target.readBytes()); // 从target读取消息（target->source）
     }
 
     public void writeBytes(byte[] bytes) throws IOException {
@@ -159,8 +162,16 @@ public class RctlChannel implements Closeable {
         writeBytes(bytes);
     }
 
+    public boolean isClosed() {
+        return closed;
+    }
+
     @Override
     public void close() throws IOException {
-        socket.close();
+        try {
+            socket.close();
+        } finally {
+            closed = true;
+        }
     }
 }

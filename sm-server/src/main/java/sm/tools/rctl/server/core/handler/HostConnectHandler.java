@@ -61,7 +61,7 @@ public class HostConnectHandler implements RctlHandler<HostConnect> {
                     logger.info("[CLIENT]连接远程机：" + remote.getRemoteHost() + "，SESSION：" + sessionId);
                     RespMsg respMsg = new RespMsg(RESULT.SUCCEED, "[CLIENT]会话创建成功：" + sessionId);
                     channel.write(new Message<>(header, respMsg));
-                    bridging(sessionId);
+                    bridge(sessionId);
                 }
 
             } else {
@@ -86,32 +86,30 @@ public class HostConnectHandler implements RctlHandler<HostConnect> {
      * @param sessionId 会话ID
      * @throws IOException 通道异常
      */
-    private void bridging(String sessionId) throws IOException {
+    private void bridge(String sessionId) throws IOException {
         RctlChannel clientChannel = SessionRouterTable.getClient(sessionId);
         RctlChannel remoteChannel = SessionRouterTable.getRemote(sessionId);
         if (clientChannel == null) throw new IOException("客户机会话通道异常");
         if (remoteChannel == null) throw new IOException("远程机会话通道异常");
 
         new Thread(() -> {
-            Thread.currentThread().setName("bridge-forward");
-            while (true) {
+            Thread.currentThread().setName("bridge-forward-" + sessionId);
+            while (!clientChannel.isClosed() && !remoteChannel.isClosed()) {
                 try {
                     clientChannel.forward(remoteChannel);
                 } catch (Exception e) {
                     logger.warn("转发异常", e);
-                    break;
                 }
             }
         }).start();
 
         new Thread(() -> {
-            Thread.currentThread().setName("bridge-retrieve");
-            while (true) {
+            Thread.currentThread().setName("bridge-receive-" + sessionId);
+            while (!clientChannel.isClosed() && !remoteChannel.isClosed()) {
                 try {
-                    clientChannel.retrieve(remoteChannel);
+                    clientChannel.receive(remoteChannel);
                 } catch (Exception e) {
                     logger.warn("收取异常", e);
-                    break;
                 }
             }
         }).start();

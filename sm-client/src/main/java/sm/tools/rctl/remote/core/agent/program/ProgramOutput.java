@@ -33,7 +33,7 @@ public class ProgramOutput extends Thread {
 
     @Override
     public void run() {
-        Thread.currentThread().setName("CommandResultThread-" + index.getAndIncrement());
+        Thread.currentThread().setName("ProgramOutput-" + index.getAndIncrement());
         try {
             while (true) {
                 while (inputStream.available() <= 0) // 通道没有数据的时候等待

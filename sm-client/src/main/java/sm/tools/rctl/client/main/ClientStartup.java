@@ -39,7 +39,7 @@ public class ClientStartup {
         if (resp.getBody().getResult() == RespMsg.RESULT.SUCCEED) {
 
             new Thread(() -> {
-                Thread.currentThread().setName("CommandResultReader");
+                Thread.currentThread().setName("CONSOLE-" + resp.getHeader().getSession());
                 try {
                     while (!terminated) {
                         Message<CommandResult> cmdResult = channel.receive(CommandResult.class);

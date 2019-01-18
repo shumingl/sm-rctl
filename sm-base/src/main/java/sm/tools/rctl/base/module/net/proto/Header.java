@@ -13,6 +13,12 @@ public class Header {
     @FieldOrder(2)
     private String action;
 
+    @FieldOrder(3)
+    private int result;
+
+    @FieldOrder(4)
+    private String message;
+
     public Header() {
     }
 
@@ -42,6 +48,12 @@ public class Header {
         return this;
     }
 
+    public Header withResult(int result, String message) {
+        this.result = result;
+        this.message = message;
+        return this;
+    }
+
     public String getId() {
         return id;
     }
@@ -66,4 +78,19 @@ public class Header {
         this.session = session;
     }
 
+    public int getResult() {
+        return result;
+    }
+
+    public void setResult(int result) {
+        this.result = result;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }
