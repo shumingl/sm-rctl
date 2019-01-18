@@ -60,7 +60,7 @@ public class HostConnectHandler implements RctlHandler<HostConnect> {
                 } else {
                     logger.info("[CLIENT]连接远程机：" + remote.getRemoteHost() + "，SESSION：" + sessionId);
                     RespMsg respMsg = new RespMsg(RESULT.SUCCEED, "[CLIENT]会话创建成功：" + sessionId);
-                    channel.write(new Message<>(header, respMsg));
+                    channel.write(new Message<>(header.withSession(sessionId), respMsg));
                     bridge(sessionId);
                 }
 
