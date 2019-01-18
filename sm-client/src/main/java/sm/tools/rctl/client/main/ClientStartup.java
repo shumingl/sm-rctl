@@ -47,6 +47,7 @@ public class ClientStartup {
                         if (cmdResult.getBody().isTerminated()) {
                             terminated = true;
                             System.out.println();
+                            break;
                         }
                     }
                 } catch (Exception e) {
