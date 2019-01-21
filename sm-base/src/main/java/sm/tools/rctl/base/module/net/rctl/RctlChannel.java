@@ -83,11 +83,21 @@ public class RctlChannel implements Closeable {
     }
 
     public void forward(RctlChannel target) throws IOException {
-        target.writeBytes(readBytes()); // 消息转发到target（source->target）
+        target.writeBytes(readBytes(timeout)); // 消息转发到target（source->target）
     }
 
     public void receive(RctlChannel target) throws IOException {
-        writeBytes(target.readBytes()); // 从target读取消息（target->source）
+        writeBytes(target.readBytes(timeout)); // 从target读取消息（target->source）
+    }
+
+    public void forward(RctlChannel target, long timeout) throws IOException {
+        this.timeout = timeout;
+        target.writeBytes(readBytes(timeout)); // 消息转发到target（source->target）
+    }
+
+    public void receive(RctlChannel target, long timeout) throws IOException {
+        this.timeout = timeout;
+        writeBytes(target.readBytes(timeout)); // 从target读取消息（target->source）
     }
 
     public void writeBytes(byte[] bytes) throws IOException {
@@ -104,6 +114,16 @@ public class RctlChannel implements Closeable {
      * @throws IOException 流异常
      */
     public byte[] readBytes() throws IOException {
+        return readBytes(timeout);
+    }
+
+    /**
+     * 读取一条消息的字节数组
+     *
+     * @return 字节数组
+     * @throws IOException 流异常
+     */
+    public byte[] readBytes(long timeout) throws IOException {
         InputStream inputStream = socket.getInputStream();
         byte[] lengthBytes = new byte[RctlConstants.TOTAL_LENGTH_BYTES];
         IOUtils.readFixedBytes(inputStream, lengthBytes, timeout);

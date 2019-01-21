@@ -87,31 +87,42 @@ public class HostConnectHandler implements RctlHandler<HostConnect> {
      * @throws IOException 通道异常
      */
     private void bridge(String sessionId) throws IOException {
-        RctlChannel clientChannel = SessionRouterTable.getClient(sessionId);
-        RctlChannel remoteChannel = SessionRouterTable.getRemote(sessionId);
-        if (clientChannel == null) throw new IOException("客户机会话通道异常");
-        if (remoteChannel == null) throw new IOException("远程机会话通道异常");
+        RctlSession session = SessionRouterTable.getSession(sessionId);
+        if (session.getClient() == null) throw new IOException("客户机会话通道异常");
+        if (session.getRemote() == null) throw new IOException("远程机会话通道异常");
 
         new Thread(() -> {
             Thread.currentThread().setName("bridge-forward-" + sessionId);
-            while (!clientChannel.isClosed() && !remoteChannel.isClosed()) {
+            while (!session.isClosed()) {
                 try {
-                    clientChannel.forward(remoteChannel);
+                    if (session.isTimeout()) {
+                        logger.warn("会话已超时：" + session.getTimeout());
+                        session.close();
+                        break;
+                    }
+                    session.forward();
                 } catch (Exception e) {
                     logger.warn("转发异常", e);
                 }
             }
+            logger.info("转发通道桥接终止：" + sessionId);
         }).start();
 
         new Thread(() -> {
             Thread.currentThread().setName("bridge-receive-" + sessionId);
-            while (!clientChannel.isClosed() && !remoteChannel.isClosed()) {
+            while (!session.isClosed()) {
                 try {
-                    clientChannel.receive(remoteChannel);
+                    if (session.isTimeout()) {
+                        logger.warn("会话已超时：" + session.getTimeout());
+                        session.close();
+                        break;
+                    }
+                    session.receive();
                 } catch (Exception e) {
-                    logger.warn("收取异常", e);
+                    logger.warn("接收异常", e);
                 }
             }
+            logger.info("接收通道桥接终止：" + sessionId);
         }).start();
     }
 }

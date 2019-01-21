@@ -3,6 +3,7 @@ package sm.tools.rctl.server.core.router;
 import sm.tools.rctl.base.module.cache.MemoryCache;
 import sm.tools.rctl.base.module.net.rctl.RctlChannel;
 import sm.tools.rctl.base.module.net.rctl.RctlSession;
+import sm.tools.rctl.base.utils.IOUtils;
 
 public class SessionRouterTable {
 
@@ -41,14 +42,14 @@ public class SessionRouterTable {
     }
 
     public static RctlSession remove(String session) {
+        IOUtils.closeQuietly(getClient(session));
+        IOUtils.closeQuietly(getRemote(session));
         return MemoryCache.remove(CACHE_KEY_ROUTER, session);
     }
 
     public static void merge(RctlSession session) {
         if (MemoryCache.contains(CACHE_KEY_ROUTER, session.getSession())) {
-            RctlSession rctlSession = getSession(session.getSession());
-            if (session.getClient() != null) rctlSession.setClient(session.getClient());
-            if (session.getRemote() != null) rctlSession.setRemote(session.getRemote());
+            getSession(session.getSession()).copyFrom(session);
         } else {
             put(session);
         }

@@ -30,8 +30,7 @@ public class HostSessionHandler implements RctlHandler<HostSession> {
             String sessionId = establish.getSession();
             logger.info("[REMOTE]远程机响应：{}", sessionId);
             // 登记远程机Socket
-            RctlSession session = new RctlSession(sessionId, null, channel);
-            SessionRouterTable.merge(session); // 更新会话信息
+            SessionRouterTable.getSession(sessionId).setRemote(channel);
             logger.info("[REMOTE]客户机通道：{}", SessionRouterTable.getClient(sessionId));
             logger.info("[REMOTE]远程机通道：{}", SessionRouterTable.getRemote(sessionId));
             RespMsg retMsg = new RespMsg(RESULT.SUCCEED, "[REMOTE]会话创建成功：" + establish.getSession());
